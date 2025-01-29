@@ -7,8 +7,33 @@ const AddAdmin = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    position: "",
+    role: "",
   });
+
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    let newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Invalid email format";
+
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+
+    if (!formData.confirmPassword)
+      newErrors.confirmPassword = "Confirm Password is required";
+    else if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+
+    if (!formData.role) newErrors.role = "Please select a role";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,12 +41,18 @@ const AddAdmin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
+    if (validate()) {
+      console.log("New Admin Details:", formData);
+      alert("Admin added successfully!");
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        role: "",
+      });
+      setErrors({});
     }
-    console.log("New Admin Details:", formData);
-    // Send formData to backend API
   };
 
   return (
@@ -37,10 +68,10 @@ const AddAdmin = () => {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            required
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
             placeholder="Enter full name"
           />
+          {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
         </div>
 
         {/* Email */}
@@ -51,10 +82,10 @@ const AddAdmin = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            required
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
             placeholder="Enter email"
           />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
         </div>
 
         {/* Password */}
@@ -65,10 +96,10 @@ const AddAdmin = () => {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            required
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
             placeholder="Enter password"
           />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
         </div>
 
         {/* Confirm Password */}
@@ -79,13 +110,29 @@ const AddAdmin = () => {
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            required
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
             placeholder="Re-enter password"
           />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+          )}
         </div>
 
-        
+        {/* Position */}
+        <div>
+          <label className="block text-gray-700">Position</label>
+          <select
+            name="position"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+          >
+            <option value="">Select position</option>
+            <option value="Admin">Admin</option>
+            <option value="Super Admin">Super Admin</option>
+          </select>
+          {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
+        </div>
 
         {/* Submit Button */}
         <button

@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
 const {connectDB }= require("./lib/db");
+const admincontrol = require("./routes/adminroutes")
 dotenv.config();
 const cors = require("cors");
 const CookieParser = require("cookie-parser");
@@ -10,6 +11,7 @@ app.use(CookieParser());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
 
+app.use('/api/admin',admincontrol)
 connectDB()
   .then(() => {
     const PORT = process.env.PORT || 5000;
