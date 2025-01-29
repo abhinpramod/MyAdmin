@@ -1,0 +1,36 @@
+import { useState } from "react";
+import React from "react";
+const Navbar = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    console.log("Searching for:", searchQuery);
+  };
+
+  return (
+    <header className="bg-white shadow-md w-full  top-0 left-64 h-16 flex items-center px-6 justify-between z-40">
+      {/* Title */}
+      <h1 className="text-lg font-semibold text-gray-800">Admin Dashboard</h1>
+
+      {/* Right Side: Search Bar & Logout */}
+      <div className="flex items-center space-x-4">
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="relative">
+          <input
+            type="text"
+            className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all w-64"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </form>
+
+        {/* Logout Button */}
+        <button className="text-red-600 hover:text-red-700">Logout</button>
+      </div>
+    </header>
+  );
+};
+
+export default Navbar;
