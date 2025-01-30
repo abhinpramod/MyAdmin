@@ -1,9 +1,10 @@
 import { useState } from "react";
 import React from "react";
+import axiosInstance from "../lib/aixos"; 
 
 const AddAdmin = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    fullname: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -15,7 +16,7 @@ const AddAdmin = () => {
   const validate = () => {
     let newErrors = {};
 
-    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.fullname.trim()) newErrors.fullname = "Full Name is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Invalid email format";
@@ -38,14 +39,27 @@ const AddAdmin = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const addadmin = async (data) => {
+    try {
+      const res = await axiosInstance.post("admin/addadmin", data);
+      if (res.data.status === 200) {
+        console.log(res.data);
+      }
+      console.log("Admin added successfully!");
+
+    } catch (error) {
+      console.log("Error in adding admin:", error);
+    }
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
       console.log("New Admin Details:", formData);
-      alert("Admin added successfully!");
+      addadmin(formData);
+ 
       setFormData({
-        name: "",
+        fullname: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -65,13 +79,13 @@ const AddAdmin = () => {
           <label className="block text-gray-700">Full Name</label>
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="fullname"
+            value={formData.fullname}
             onChange={handleChange}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
             placeholder="Enter full name"
           />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+          {errors.fullname && <p className="text-red-500 text-sm">{errors.fullname}</p>}
         </div>
 
         {/* Email */}
@@ -122,14 +136,14 @@ const AddAdmin = () => {
         <div>
           <label className="block text-gray-700">Position</label>
           <select
-            name="position"
+            name="role"
             value={formData.role}
             onChange={handleChange}
             className="w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
           >
             <option value="">Select position</option>
-            <option value="Admin">Admin</option>
-            <option value="Super Admin">Super Admin</option>
+            <option value="admin">admin</option>
+            <option value="superadmin">superadmin</option>
           </select>
           {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
         </div>

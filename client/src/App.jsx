@@ -7,11 +7,13 @@ import ContractorRequests from "./pages/ContractorRequests";
 import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
 import React from "react";
+import Login from "./pages/Login";
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Login />} />
         <Route path="/admin" element={<Layout />}>
           <Route path="stores" element={<Stores />} />
           <Route path="contractors" element={<Contractors />} />

@@ -54,7 +54,7 @@ const login = async (req, res) => {
     let admin
   
     try {
-       admin = await Admin.findOne({ email });
+       admin = await Admin.findOne({ email: String(email) });
       if (!admin) return res.status(400).json({ msg: "Invalid Email" });
       console.log('emailfinded');
       
