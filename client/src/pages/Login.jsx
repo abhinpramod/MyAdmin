@@ -1,61 +1,60 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import React from "react";
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast"; // Import Toaster
 import axiosInstance from "../lib/aixos";
 import { useNavigate } from "react-router-dom";
 
-
 const Login = () => {
-  // const [email, setEmail] = useState("");
-  // const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({});
-  const[formData, setFormData] = useState({
+  // const [errors, setErrors] = useState({
+  //   email: "",
+  //   password: "",
+  // });
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   const validateForm = () => {
     let newErrors = {};
 
     if (!formData.email) {
       newErrors.email = "Email is required";
+      toast.error("Email is required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
+      toast.error("Invalid email format");
     }
 
     if (!formData.password) {
       newErrors.password = "Password is required";
+      toast.error("Password is required");
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
+      toast.error("Password must be at least 6 characters");
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const login = async (data) => {
-   
     try {
-      const res = await axiosInstance.post("admin/login", 
-      data
-      );
+      const res = await axiosInstance.post("admin/login", data);
       console.log(res.data);
-      
-        navigate("/admin")
-      
-      toast.success("welcome back");
-  
+      toast.success("Welcome back!");
+      navigate("/admin");
     } catch (error) {
       console.log("Error in login:", error);
-      toast.error(error.response.data.msg);
-    } 
+      toast.error(error.response?.data?.msg || "Login failed");
+    }
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       login(formData);
-      
     }
   };
 
@@ -76,10 +75,11 @@ const Login = () => {
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
               placeholder="Enter your email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+           
           </div>
 
           {/* Password Field */}
@@ -88,20 +88,23 @@ const Login = () => {
               Password
             </label>
             <input
-              type="text"
+              type="password"
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
               placeholder="Enter your password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            
           </div>
 
-          {/* Remember Me & Forgot Password */}
+          {/* Forgot Password */}
           <div className="flex justify-between items-center text-sm">
-            
-            <Link to="/forgot-password" className="text-red-600 hover:underline">
+            <Link
+              to="/forgot-password"
+              className="text-red-600 hover:underline"
+            >
               Forgot Password?
             </Link>
           </div>

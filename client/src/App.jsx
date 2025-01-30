@@ -8,22 +8,26 @@ import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
 import React from "react";
 import Login from "./pages/Login";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/admin" element={<Layout />}>
-          <Route path="stores" element={<Stores />} />
-          <Route path="contractors" element={<Contractors />} />
-          <Route path="store-requests" element={<StoreRequests />} />
-          <Route path="contractor-requests" element={<ContractorRequests />} />
-          <Route path="add-admin" element={<AddAdmin />} />
-          <Route path="manage-admins" element={<ManageAdmins />} />
-        </Route>
-      </Routes>
-    </Router>
+    <div>
+      <Toaster position="top-center" reverseOrder={false} />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/admin" element={<Layout />}>
+            <Route path="stores" element={<Stores />} />
+            <Route path="contractors" element={<Contractors />} />
+            <Route path="store-requests" element={<StoreRequests />} />
+            <Route path="contractor-requests" element={<ContractorRequests />} />
+            <Route path="add-admin" element={<AddAdmin />} />
+            <Route path="manage-admins" element={<ManageAdmins />} />
+          </Route>
+        </Routes>
+      </Router>
+    </div>
   );
 }
 
