@@ -1,13 +1,12 @@
 const mongoose = require("mongoose");
 
-const AdminSchema = new mongoose.Schema(
-  {
-    fullname: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    role: { type: String, enum: ["admin", "superadmin"], required: true },
-  },
-  { timestamps: true }
-);
+const adminSchema = new mongoose.Schema({
+  fullname: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String,   },
+  isBlocked: { type: Boolean, default: false }, // New field for blocking admins
+});
 
-module.exports = mongoose.model("Admin", AdminSchema);
+const Admin = mongoose.model("Admin", adminSchema);
+module.exports = Admin;

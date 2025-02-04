@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
@@ -12,6 +17,7 @@ import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
 import StoreRequests from "./pages/StoreRequests";
 import ContractorRequests from "./pages/ContractorRequests";
+import  Allusers  from "./pages/Allusers"
 // import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";
@@ -56,19 +62,37 @@ function App() {
       <Router>
         <Routes>
           {/* Redirect logged-in admins away from the login page */}
-          <Route path="/" element={admin ? <Navigate to="/admin/stores" /> : <Login />} />
+          <Route
+            path="/"
+            element={admin ? <Navigate to="/admin/stores" /> : <Login />}
+          />
           {console.log(admin)}
 
           {/* Protect admin routes */}
-          <Route path="/admin" element={admin ? <Layout /> : <Navigate to="/" />}>
+          <Route
+            path="/admin"
+            element={admin ? <Layout /> : <Navigate to="/" />}
+          >
             <Route path="stores" element={<Stores />} />
             <Route path="contractors" element={<Contractors />} />
             <Route path="store-requests" element={<StoreRequests />} />
-            <Route path="contractor-requests" element={<ContractorRequests />} />
-            {/* <Route path="add-admin" element={<AddAdmin />} /> */}
-            <Route path="manage-admins" element={admin.role === "superadmin" ? <ManageAdmins /> : <Navigate to="/admin/stores" />} />
+            <Route
+              path="contractor-requests"
+              element={<ContractorRequests />}
+            />
+            <Route path="allusers" element={< Allusers  />} />
+            <Route
+              path="manage-admins"
+              element={
+                admin && admin.role === "superadmin" ? (
+                  <ManageAdmins />
+                ) : (
+                  <Navigate to="/admin/stores" />
+                )
+              }
+            />
+
             <Route path="*" element={<Navigate to="/admin/stores" />} />
-            
           </Route>
         </Routes>
       </Router>

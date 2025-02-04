@@ -14,33 +14,47 @@ const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className="space-y-4">
-        <Link to="stores" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
-          <Store className="w-5 h-5 mr-3" /> All Users
+        <Link
+          to="allusers"
+          className="flex items-center p-3 hover:bg-gray-800 rounded-lg"
+        >
+          <Store className="w-5 h-5 mr-3" /> All Users  
         </Link>
-        <Link to="contractors" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
+        <Link
+          to="contractors"
+          className="flex items-center p-3 hover:bg-gray-800 rounded-lg"
+        >
           <Users className="w-5 h-5 mr-3" /> All Contractors
         </Link>
-        <Link to="stores" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
+        <Link
+          to="stores"
+          className="flex items-center p-3 hover:bg-gray-800 rounded-lg"
+        >
           <Store className="w-5 h-5 mr-3" /> All Stores
         </Link>
 
-        {/* Regular Admin Access */}
-       
-          <>
-            <Link to="store-requests" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
-              <Store className="w-5 h-5 mr-3" /> Store Requests
-            </Link>
-            <Link to="contractor-requests" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
-              <Users className="w-5 h-5 mr-3" /> Contractor Requests
-            </Link>
-          </>
-       
+        <>
+          <Link
+            to="store-requests"
+            className="flex items-center p-3 hover:bg-gray-800 rounded-lg"
+          >
+            <Store className="w-5 h-5 mr-3" /> Store Requests
+          </Link>
+          <Link
+            to="contractor-requests"
+            className="flex items-center p-3 hover:bg-gray-800 rounded-lg"
+          >
+            <Users className="w-5 h-5 mr-3" /> Contractor Requests
+          </Link>
+        </>
 
         {/* Super Admin Access */}
-        {admin?.role === "superadmin" && (
+        {admin.role === "superadmin" && (
           <>
-          
-            <Link to="manage-admins" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
+            <Link
+              to="manage-admins"
+              className="flex items-center p-3 hover:bg-gray-800 rounded-lg"
+            >
               <UserCheck className="w-5 h-5 mr-3" /> Manage Admins
             </Link>
           </>

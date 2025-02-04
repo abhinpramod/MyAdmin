@@ -9,7 +9,7 @@ const addadmin = async (req, res) => {
     
 
     try {
-        if (!fullname || !email || !password || !role) {
+        if (!fullname || !email || !password ) {
             return res.status(400).json({ message: "All fields are required man" });
         }
 
@@ -46,34 +46,31 @@ const addadmin = async (req, res) => {
         res.status(500).json({ msg: "Internal server error" });
     }
 };
-
 const login = async (req, res) => {
-    const { email, password } = req.body;
-    console.log(req.body);
-    
-    let admin
-  
-    try {
-       admin = await Admin.findOne({ email: String(email) });
-      if (!admin) return res.status(400).json({ msg: "Invalid Email" });
-      console.log('emailfinded');
-      
-  
-      const isMatch = await bcrypt.compare(password, admin.password);
-      if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
-  
-      generateToken(admin._id, res);
-      res.status(200).json({
-        _id: admin._id,
-        fullname: admin.fullname,
-        email: admin.email,
-        role: admin.role
-      });
-    } catch (error) {
-      console.log("error from login :", error.message);
-      res.status(500).json({ msg: "Internal server error" });
-    }
-  };
+  const { email, password } = req.body;
+
+  try {
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.status(400).json({ msg: "Invalid Email" });
+
+    if (admin.isBlocked) return res.status(403).json({ msg: "Admin is blocked" });
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
+
+    generateToken(admin._id, res);
+    res.status(200).json({
+      _id: admin._id,
+      fullname: admin.fullname,
+      email: admin.email,
+      role: admin.role,
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
 
   const checkAuth = (req, res) => {
     try {
@@ -92,7 +89,7 @@ const login = async (req, res) => {
 // Get all admins
 const getalladmins = async (req, res) => {  
   try {
-    const admins = await Admin.find({});
+    const admins = await Admin.find({role: {$ne: "superadmin"}});
     res.status(200).json(admins);
   } catch (error) {
     console.log("error from getalladmins", error.message);
@@ -101,23 +98,42 @@ const getalladmins = async (req, res) => {
 };
 
 // Delete an admin by ID
-const deleteadmin = async (req, res) => {
+const blockAdmin = async (req, res) => {
   const { adminId } = req.params;
-  try {
-    const admin = await Admin.findById(adminId); // Use findById to find the admin
-    if (!admin) {
-      return res.status(404).json({ msg: "Admin not found" });
-    }
 
-    await Admin.findByIdAndDelete(adminId); // Use findByIdAndDelete to remove the admin
-    res.json({ msg: "Admin deleted successfully" });
+  try {
+    const admin = await Admin.findById(adminId);
+    if (!admin) return res.status(404).json({ msg: "Admin not found" });
+
+    admin.isBlocked = true;
+    await admin.save();
+
+    res.json({ msg: "Admin blocked successfully" });
   } catch (error) {
-    console.log("error from deleteadmin", error.message);
-    res.status(500).json({ msg: "Error deleting admin", error: error.message });
+    console.error("Error blocking admin:", error.message);
+    res.status(500).json({ msg: "Internal server error" });
   }
 };
 
-const logoutAdmin = async = (req, res) => {
+// Unblock an admin
+const unblockAdmin = async (req, res) => {
+  const { adminId } = req.params;
+
+  try {
+    const admin = await Admin.findById(adminId);
+    if (!admin) return res.status(404).json({ msg: "Admin not found" });
+
+    admin.isBlocked = false;
+    await admin.save();
+
+    res.json({ msg: "Admin unblocked successfully" });
+  } catch (error) {
+    console.error("Error unblocking admin:", error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+const logoutAdmin = async  (req, res) => {
   try {
     res.cookie("jwt", "", { maxAge: 0 });
     return res.status(200).json({ msg: "Logout success" });
@@ -128,4 +144,4 @@ const logoutAdmin = async = (req, res) => {
 };
 
 // Export the functions using CommonJS
-module.exports = { addadmin,login,checkAuth,getalladmins,deleteadmin,logoutAdmin };
+module.exports = { addadmin,login,checkAuth,getalladmins,logoutAdmin,blockAdmin,unblockAdmin };
