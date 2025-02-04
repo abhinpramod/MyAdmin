@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import React from "react";
-import { toast, Toaster } from "react-hot-toast"; // Import Toaster
+import { toast } from "react-hot-toast";
 import axiosInstance from "../lib/aixos";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginAdmin } from "../redux/adminSlice";
 
 const Login = () => {
-  // const [errors, setErrors] = useState({
-  //   email: "",
-  //   password: "",
-  // });
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const validateForm = () => {
     let newErrors = {};
@@ -42,11 +45,13 @@ const Login = () => {
   const login = async (data) => {
     try {
       const res = await axiosInstance.post("admin/login", data);
-      console.log(res.data);
       toast.success("Welcome back!");
+      dispatch(loginAdmin({ admin: res.data })); // Store in Redux
+      console.log(res.data);
+      
       navigate("/admin");
     } catch (error) {
-      console.log("Error in login:", error);
+      console.log(error);
       toast.error(error.response?.data?.msg || "Login failed");
     }
   };
@@ -61,58 +66,33 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-sm w-full">
-        <h2 className="text-3xl font-bold text-red-600 text-center mb-6">
-          Admin Login
-        </h2>
+        <h2 className="text-3xl font-bold text-red-600 text-center mb-6">Admin Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Field */}
           <div>
-            <label className="block text-gray-700 text-sm font-medium mb-1">
-              Email
-            </label>
+            <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
             <input
               type="text"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg"
               placeholder="Enter your email"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
-           
           </div>
 
-          {/* Password Field */}
           <div>
-            <label className="block text-gray-700 text-sm font-medium mb-1">
-              Password
-            </label>
+            <label className="block text-gray-700 text-sm font-medium mb-1">Password</label>
             <input
               type="password"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+              className="w-full px-4 py-2 border rounded-lg"
               placeholder="Enter your password"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
-            
           </div>
 
-          {/* Forgot Password */}
-          <div className="flex justify-between items-center text-sm">
-            <Link
-              to="/forgot-password"
-              className="text-red-600 hover:underline"
-            >
-              Forgot Password?
-            </Link>
-          </div>
-
-          {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition"
+            className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
           >
             Login
           </button>

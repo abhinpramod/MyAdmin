@@ -1,7 +1,7 @@
 // const  { generateToken }=require ("../lib/utils.js" )
 const  Admin = require ("../model/admin.js");
 const bcrypt = require("bcrypt");
-
+const   generateToken =require ("../lib/utils.js" )
 
 const addadmin = async (req, res) => {
     const { email, password, fullname, role } = req.body;
@@ -62,7 +62,7 @@ const login = async (req, res) => {
       const isMatch = await bcrypt.compare(password, admin.password);
       if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
   
-    //   generateToken(user._id, res);
+      generateToken(admin._id, res);
       res.status(200).json({
         _id: admin._id,
         fullname: admin.fullname,
@@ -70,10 +70,57 @@ const login = async (req, res) => {
         role: admin.role
       });
     } catch (error) {
-      console.log("error from login", error.message);
+      console.log("error from login :", error.message);
       res.status(500).json({ msg: "Internal server error" });
     }
   };
 
+  const checkAuth = (req, res) => {
+    try {
+      res.status(200).json(req.admin  );
+    } catch (error) {
+      console.log("error from checkAuth", error.message);
+      res.status(500).json({ msg: error.message }); 
+    }
+  };
+
+// Get all admins
+const getalladmins = async (req, res) => {  
+  try {
+    const admins = await Admin.find({});
+    res.status(200).json(admins);
+  } catch (error) {
+    console.log("error from getalladmins", error.message);
+    res.status(500).json({ msg: error.message });
+  }
+};
+
+// Delete an admin by ID
+const deleteadmin = async (req, res) => {
+  const { adminId } = req.params;
+  try {
+    const admin = await Admin.findById(adminId); // Use findById to find the admin
+    if (!admin) {
+      return res.status(404).json({ msg: "Admin not found" });
+    }
+
+    await Admin.findByIdAndDelete(adminId); // Use findByIdAndDelete to remove the admin
+    res.json({ msg: "Admin deleted successfully" });
+  } catch (error) {
+    console.log("error from deleteadmin", error.message);
+    res.status(500).json({ msg: "Error deleting admin", error: error.message });
+  }
+};
+
+const logoutAdmin = async = (req, res) => {
+  try {
+    res.cookie("jwt", "", { maxAge: 0 });
+    return res.status(200).json({ msg: "Logout success" });
+  } catch (error) {
+    console.log("error from logout", error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
 // Export the functions using CommonJS
-module.exports = { addadmin,login };
+module.exports = { addadmin,login,checkAuth,getalladmins,deleteadmin,logoutAdmin };

@@ -19,8 +19,11 @@ const AddAdmin = () => {
   const addAdmin = async (data) => {
     try {
       const res = await axiosInstance.post("admin/addadmin", data);
-      if (res.data.status === 200) {
+      console.log(res.data);
+      
+      if (res.status === 201) {
         toast.success("Admin added successfully!");
+        
         setFormData({
           fullname: "",
           email: "",

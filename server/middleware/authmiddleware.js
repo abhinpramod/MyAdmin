@@ -1,9 +1,10 @@
-const jwt =require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 
-import jwt from "jsonwebtoken";
-import admin from "../models/admin.js";
+const Admin = require("../model/admin");
 
-export const protectRoute = async (req, res, next) => {
+const protectRoute = async (req, res, next) => {
+  console.log('protectRoute');
+  
   try {
     const token = req.cookies.jwt;
 
@@ -15,7 +16,7 @@ export const protectRoute = async (req, res, next) => {
     if (!decoded) {
       return res.status(401).json({ msg: "Unauthorized" });
     }
-    const admin = await admin.findById(decoded.userId);
+    const admin = await Admin.findById(decoded.adminId);
     if (!admin) {
       return res.status(401).json({ msg: "Unauthorized" });
     }
@@ -26,3 +27,5 @@ export const protectRoute = async (req, res, next) => {
     res.status(500).json({ msg: "Internal server error" });
   }
 };
+
+module.exports = { protectRoute };

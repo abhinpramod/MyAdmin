@@ -1,7 +1,8 @@
 const  jwt =require("jsonwebtoken")
 
- const generateToken = (userId, res) => {
-  const token = jwt.sign({ userId }, process.env.JwT_SECRET, {
+
+ const generateToken = async (adminId, res) => {
+  const token = jwt.sign({ adminId }, process.env.JwT_SECRET, {
     expiresIn: "7d",
   });
 

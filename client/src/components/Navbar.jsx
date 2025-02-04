@@ -1,15 +1,47 @@
 import { useState } from "react";
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import Cookies from "js-cookie";
+import axiosInstance from "../lib/aixos";
+import { logoutAdmin } from "../redux/adminSlice";
+import { toast } from "react-hot-toast";
+
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  // Handle search action
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
   };
 
+  // Handle logout action
+  const handleLogout = async () => {
+    try {
+      // Call API to remove cookie from server
+      await axiosInstance.post("/admin/logout");
+
+      // Remove token from client-side
+      // Cookies.remove("jwt", { path: "/" });
+
+      // Dispatch logout action to reset Redux state
+      dispatch(logoutAdmin());
+
+      // Redirect to login page
+      navigate("/");
+
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Failed to log out");
+    }
+  };
+
   return (
-    <header className="bg-white shadow-md w-full  top-0 left-64 h-16 flex items-center px-6 justify-between z-40">
+    <header className="bg-white shadow-md w-full top-0 left-64 h-16 flex items-center px-6 justify-between z-40">
       {/* Title */}
       <h1 className="text-lg font-semibold text-gray-800">Admin Dashboard</h1>
 
@@ -27,7 +59,12 @@ const Navbar = () => {
         </form>
 
         {/* Logout Button */}
-        <button className="text-red-600 hover:text-red-700">Logout</button>
+        <button 
+          onClick={handleLogout} 
+          className="text-red-600 hover:text-red-700"
+        >
+          Logout
+        </button>
       </div>
     </header>
   );

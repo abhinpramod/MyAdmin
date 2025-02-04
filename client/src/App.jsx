@@ -1,4 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Toaster } from "react-hot-toast";
+import { Loader } from "lucide-react";
+import axiosInstance from "./lib/aixos";
+import { loginAdmin, logoutAdmin } from "./redux/adminSlice";
+
+// Components & Pages
 import Layout from "./components/Layout";
 import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
@@ -6,18 +14,52 @@ import StoreRequests from "./pages/StoreRequests";
 import ContractorRequests from "./pages/ContractorRequests";
 import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
-import React from "react";
 import Login from "./pages/Login";
-import { Toaster } from "react-hot-toast";
 
 function App() {
+  const dispatch = useDispatch();
+  const { admin } = useSelector((state) => state.admin);
+  const [loading, setLoading] = useState(true); // Start with loading state
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await axiosInstance.get("/admin/check");
+        if (res.status === 200) {
+          dispatch(loginAdmin(res.data)); // Store admin data in Redux
+        } else {
+          dispatch(logoutAdmin());
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+        dispatch(logoutAdmin());
+      } finally {
+        setLoading(false); // Set loading to false after checking
+      }
+    };
+
+    checkAuth();
+  }, [dispatch]);
+
+  // Show loader while checking authentication
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Toaster position="top-center" reverseOrder={false} />
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/admin" element={<Layout />}>
+          {/* Redirect logged-in admins away from the login page */}
+          <Route path="/" element={admin ? <Navigate to="/admin/stores" /> : <Login />} />
+
+          {/* Protect admin routes */}
+          <Route path="/admin" element={admin ? <Layout /> : <Navigate to="/" />}>
             <Route path="stores" element={<Stores />} />
             <Route path="contractors" element={<Contractors />} />
             <Route path="store-requests" element={<StoreRequests />} />
