@@ -39,9 +39,7 @@ const Sidebar = () => {
         {/* Super Admin Access */}
         {admin?.role === "superadmin" && (
           <>
-            <Link to="add-admin" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
-              <UserPlus className="w-5 h-5 mr-3" /> Add Admin
-            </Link>
+          
             <Link to="manage-admins" className="flex items-center p-3 hover:bg-gray-800 rounded-lg">
               <UserCheck className="w-5 h-5 mr-3" /> Manage Admins
             </Link>

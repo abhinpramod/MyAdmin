@@ -2,7 +2,7 @@ import { useState } from "react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import Cookies from "js-cookie";
+// import Cookies from "js-cookie";
 import axiosInstance from "../lib/aixos";
 import { logoutAdmin } from "../redux/adminSlice";
 import { toast } from "react-hot-toast";

@@ -12,7 +12,7 @@ import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
 import StoreRequests from "./pages/StoreRequests";
 import ContractorRequests from "./pages/ContractorRequests";
-import AddAdmin from "./pages/AddAdmin";
+// import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";
 
@@ -39,7 +39,7 @@ function App() {
     };
 
     checkAuth();
-  }, [dispatch]);
+  }, []);
 
   // Show loader while checking authentication
   if (loading) {
@@ -57,6 +57,7 @@ function App() {
         <Routes>
           {/* Redirect logged-in admins away from the login page */}
           <Route path="/" element={admin ? <Navigate to="/admin/stores" /> : <Login />} />
+          {console.log(admin)}
 
           {/* Protect admin routes */}
           <Route path="/admin" element={admin ? <Layout /> : <Navigate to="/" />}>
@@ -64,8 +65,10 @@ function App() {
             <Route path="contractors" element={<Contractors />} />
             <Route path="store-requests" element={<StoreRequests />} />
             <Route path="contractor-requests" element={<ContractorRequests />} />
-            <Route path="add-admin" element={<AddAdmin />} />
-            <Route path="manage-admins" element={<ManageAdmins />} />
+            {/* <Route path="add-admin" element={<AddAdmin />} /> */}
+            <Route path="manage-admins" element={admin.role === "superadmin" ? <ManageAdmins /> : <Navigate to="/admin/stores" />} />
+            <Route path="*" element={<Navigate to="/admin/stores" />} />
+            
           </Route>
         </Routes>
       </Router>

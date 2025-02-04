@@ -20,10 +20,10 @@ const AddAdmin = () => {
     try {
       const res = await axiosInstance.post("admin/addadmin", data);
       console.log(res.data);
-      
+
       if (res.status === 201) {
         toast.success("Admin added successfully!");
-        
+
         setFormData({
           fullname: "",
           email: "",
@@ -44,11 +44,15 @@ const AddAdmin = () => {
     // Basic validation with toast
     if (!formData.fullname.trim()) return toast.error("Full Name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
-    if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
+    if (!/\S+@\S+\.\S+/.test(formData.email))
+      return toast.error("Invalid email format");
     if (!formData.password) return toast.error("Password is required");
-    if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
-    if (!formData.confirmPassword) return toast.error("Confirm Password is required");
-    if (formData.password !== formData.confirmPassword) return toast.error("Passwords do not match");
+    if (formData.password.length < 6)
+      return toast.error("Password must be at least 6 characters");
+    if (!formData.confirmPassword)
+      return toast.error("Confirm Password is required");
+    if (formData.password !== formData.confirmPassword)
+      return toast.error("Passwords do not match");
     if (!formData.role) return toast.error("Please select a role");
 
     addAdmin(formData);
@@ -58,7 +62,9 @@ const AddAdmin = () => {
     <div className="bg-white p-8 rounded-lg shadow-md max-w-lg mx-auto mt-10">
       {/* <Toaster position="top-r" reverseOrder={false} /> Toaster Component */}
 
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add New Admin</h2>
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+        Add New Admin
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Name */}
@@ -99,7 +105,6 @@ const AddAdmin = () => {
             placeholder="Enter password"
           />
         </div>
-
         {/* Confirm Password */}
         <div>
           <label className="block text-gray-700">Confirm Password</label>

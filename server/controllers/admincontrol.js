@@ -77,7 +77,12 @@ const login = async (req, res) => {
 
   const checkAuth = (req, res) => {
     try {
-      res.status(200).json(req.admin  );
+      res.status(200).json({
+        _id: req.admin._id,
+        fullname: req.admin.fullname,
+        email: req.admin.email,
+        role: req.admin.role
+      });
     } catch (error) {
       console.log("error from checkAuth", error.message);
       res.status(500).json({ msg: error.message }); 
