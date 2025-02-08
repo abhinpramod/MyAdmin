@@ -34,7 +34,7 @@ const ManageAdmins = () => {
     role: "",
   });
 
-  // Fetch admins
+
   useEffect(() => {
     const fetchAdmins = async () => {
       try {
@@ -61,14 +61,19 @@ const ManageAdmins = () => {
       return toast.error("Password must be at least 6 characters");
     if (formData.password !== formData.confirmPassword)
       return toast.error("Passwords do not match");
-    
 
     try {
       const res = await axiosInstance.post("/admin/addadmin", formData);
       if (res.status === 201) {
         toast.success("Admin added successfully!");
         setAdmins([...admins, res.data]); // Update list
-        setFormData({ fullname: "", email: "", password: "", confirmPassword: "", role: "" });
+        setFormData({
+          fullname: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          role: "",
+        });
         setOpenAddAdmin(false);
       }
     } catch (error) {
@@ -101,11 +106,17 @@ const ManageAdmins = () => {
     setLoading(true);
     try {
       const updatedStatus = selectedAdmin.isBlocked ? false : true;
-      await axiosInstance.patch(`/admin/block-admin/${selectedAdmin._id}`, { isBlocked: updatedStatus });
-      toast.success(`Admin ${updatedStatus ? "blocked" : "unblocked"} successfully.`);
+      await axiosInstance.patch(`/admin/block-admin/${selectedAdmin._id}`, {
+        isBlocked: updatedStatus,
+      });
+      toast.success(
+        `Admin ${updatedStatus ? "blocked" : "unblocked"} successfully.`
+      );
       setAdmins(
         admins.map((admin) =>
-          admin._id === selectedAdmin._id ? { ...admin, isBlocked: updatedStatus } : admin
+          admin._id === selectedAdmin._id
+            ? { ...admin, isBlocked: updatedStatus }
+            : admin
         )
       );
     } catch (error) {
@@ -122,7 +133,11 @@ const ManageAdmins = () => {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Manage Admins</h2>
-        <Button variant="contained" color="primary" onClick={() => setOpenAddAdmin(true)}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenAddAdmin(true)}
+        >
           Add Admin
         </Button>
       </div>
@@ -139,7 +154,7 @@ const ManageAdmins = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
-              
+
                 {/* <TableCell>Status</TableCell> */}
                 <TableCell>Actions</TableCell>
               </TableRow>
@@ -150,7 +165,7 @@ const ManageAdmins = () => {
                   <TableCell>ID</TableCell>
                   <TableCell>{admin.fullname}</TableCell>
                   <TableCell>{admin.email}</TableCell>
-  
+
                   {/* <TableCell>{admin.isBlocked ? "Blocked" : "Active"}</TableCell> */}
                   <TableCell>
                     <Button
@@ -164,7 +179,6 @@ const ManageAdmins = () => {
                     >
                       {admin.isBlocked ? "Unblock" : "Block"}
                     </Button>
-                   
                   </TableCell>
                 </TableRow>
               ))}
@@ -177,28 +191,76 @@ const ManageAdmins = () => {
       <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
         <DialogTitle>Add New Admin</DialogTitle>
         <DialogContent>
-          <TextField label="Full Name" fullWidth margin="normal" value={formData.fullname}
-            onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
-          <TextField label="Email" fullWidth margin="normal" value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-          <TextField label="Password" type="password" fullWidth margin="normal" value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
-          <TextField label="Confirm Password" type="password" fullWidth margin="normal" value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
-          
+          <TextField
+            label="Full Name"
+            fullWidth
+            margin="normal"
+            value={formData.fullname}
+            onChange={(e) =>
+              setFormData({ ...formData, fullname: e.target.value })
+            }
+          />
+          <TextField
+            label="Email"
+            fullWidth
+            margin="normal"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
+          />
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+          />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={formData.confirmPassword}
+            onChange={(e) =>
+              setFormData({ ...formData, confirmPassword: e.target.value })
+            }
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenAddAdmin(false)} color="secondary">Cancel</Button>
-          <Button onClick={handleAddAdmin} color="primary">Add</Button>
+          <Button onClick={() => setOpenAddAdmin(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleAddAdmin} color="primary">
+            Add
+          </Button>
         </DialogActions>
       </Dialog>
 
       {/* Confirmation Dialog */}
-      <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
-        <DialogTitle>Confirm {confirmAction === "delete" ? "Delete" : "Block/Unblock"} Admin</DialogTitle>
+      <Dialog
+        open={Boolean(confirmAction)}
+        onClose={() => setConfirmAction(null)}
+      >
+        <DialogTitle>
+          Confirm {confirmAction === "delete" ? "Delete" : "Block/Unblock"}{" "}
+          Admin
+        </DialogTitle>
         <DialogActions>
-          <Button onClick={() => setConfirmAction(null)} color="secondary">Cancel</Button>
-          <Button onClick={confirmAction === "delete" ? handleDeleteAdmin : handleBlockUnblockAdmin} color="primary">
+          <Button onClick={() => setConfirmAction(null)} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={
+              confirmAction === "delete"
+                ? handleDeleteAdmin
+                : handleBlockUnblockAdmin
+            }
+            color="primary"
+          >
             Confirm
           </Button>
         </DialogActions>
