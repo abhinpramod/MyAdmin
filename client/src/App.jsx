@@ -17,7 +17,7 @@ import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
 import StoreRequests from "./pages/StoreRequests";
 import ContractorRequests from "./pages/ContractorRequests";
-import  Allusers  from "./pages/Allusers"
+import Allusers from "./pages/Allusers";
 // import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import React from "react";
-import { toast, Toaster } from "react-hot-toast"; // Import Toast
+import { toast } from "react-hot-toast";
 import axiosInstance from "../lib/aixos";
 
 const AddAdmin = () => {
@@ -17,13 +17,12 @@ const AddAdmin = () => {
   };
 
   const addAdmin = async (data) => {
+    console.log("Sending data to server:", data); // Debugging log
+    
     try {
       const res = await axiosInstance.post("admin/addadmin", data);
-      console.log(res.data);
-
       if (res.status === 201) {
         toast.success("Admin added successfully!");
-
         setFormData({
           fullname: "",
           email: "",
@@ -41,7 +40,7 @@ const AddAdmin = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Basic validation with toast
+    // **Validation**
     if (!formData.fullname.trim()) return toast.error("Full Name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
     if (!/\S+@\S+\.\S+/.test(formData.email))
@@ -55,17 +54,19 @@ const AddAdmin = () => {
       return toast.error("Passwords do not match");
     if (!formData.role) return toast.error("Please select a role");
 
-    addAdmin(formData);
+    // **Generate uniqueId before sending the request**
+    const uniqueId = uuid().slice(0, 8);
+    console.log("Generated Unique ID:", uniqueId); // Debugging log
+    
+    const finalData = { ...formData, uniqueId };
+    
+    console.log("Final data before sending:", finalData); // Debugging log
+    addAdmin(finalData);
   };
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-md max-w-lg mx-auto mt-10">
-      {/* <Toaster position="top-r" reverseOrder={false} /> Toaster Component */}
-
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-        Add New Admin
-      </h2>
-
+      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Add New Admin</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Name */}
         <div>
@@ -105,6 +106,7 @@ const AddAdmin = () => {
             placeholder="Enter password"
           />
         </div>
+
         {/* Confirm Password */}
         <div>
           <label className="block text-gray-700">Confirm Password</label>

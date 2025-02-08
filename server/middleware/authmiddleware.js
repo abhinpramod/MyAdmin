@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 
 const Admin = require("../model/admin");
 
+
 const protectRoute = async (req, res, next) => {
   console.log('protectRoute');
   
