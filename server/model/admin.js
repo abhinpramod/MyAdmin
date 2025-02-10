@@ -6,6 +6,7 @@ const adminSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String,   },
   isBlocked: { type: Boolean, default: false }, // New field for blocking admins
+  uniqueId: { type: String, unique: true },
 });
 
 const Admin = mongoose.model("Admin", adminSchema);

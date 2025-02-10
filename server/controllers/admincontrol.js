@@ -67,6 +67,7 @@ try {
     fullname: admin.fullname,
     email: admin.email,
     role: admin.role,
+    uniqueId: admin.uniqueId
   });
 } catch (error) {
   console.error("Login error:", error.message);
@@ -81,7 +82,8 @@ try {
         _id: req.admin._id,
         fullname: req.admin.fullname,
         email: req.admin.email,
-        role: req.admin.role
+        role: req.admin.role,
+        uniqueId: req.admin.uniqueId
       });
     } catch (error) {
       console.log("error from checkAuth", error.message);

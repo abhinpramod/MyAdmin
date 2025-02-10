@@ -32,7 +32,7 @@ function App() {
       try {
         const res = await axiosInstance.get("/admin/check");
         if (res.status === 200) {
-          dispatch(loginAdmin(res.data)); // Store admin data in Redux
+          dispatch(loginAdmin(res.data));
         } else {
           dispatch(logoutAdmin());
         }
@@ -40,12 +40,13 @@ function App() {
         console.error("Authentication error:", error);
         dispatch(logoutAdmin());
       } finally {
-        setLoading(false); // Set loading to false after checking
+        setLoading(false);
       }
     };
-
+  
     checkAuth();
-  }, []);
+  }, [dispatch]); // Keep dependencies minimal to avoid unnecessary re-renders
+  
 
   // Show loader while checking authentication
   if (loading) {

@@ -9,7 +9,6 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -19,13 +18,14 @@ import {
   Paper,
   CircularProgress,
 } from "@mui/material";
+import { v4 as uuid } from "uuid";
 
 const ManageAdmins = () => {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAdmin, setSelectedAdmin] = useState(null); // Admin selected for actions
-  const [openAddAdmin, setOpenAddAdmin] = useState(false); // Add Admin Modal
-  const [confirmAction, setConfirmAction] = useState(null); // Confirmation Modal
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [openAddAdmin, setOpenAddAdmin] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -33,7 +33,6 @@ const ManageAdmins = () => {
     confirmPassword: "",
     role: "",
   });
-
 
   useEffect(() => {
     const fetchAdmins = async () => {
@@ -50,7 +49,6 @@ const ManageAdmins = () => {
     fetchAdmins();
   }, []);
 
-  // Handle Add Admin
   const handleAddAdmin = async () => {
     if (!formData.fullname.trim()) return toast.error("Full Name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
@@ -62,16 +60,20 @@ const ManageAdmins = () => {
     if (formData.password !== formData.confirmPassword)
       return toast.error("Passwords do not match");
 
+    const uniqueId = uuid().slice(2, 8);
+    const finalData = { ...formData, uniqueId };
+
     try {
-      const res = await axiosInstance.post("/admin/addadmin", formData);
+      const res = await axiosInstance.post("/admin/addadmin", finalData);
       if (res.status === 201) {
         toast.success("Admin added successfully!");
-        setAdmins([...admins, res.data]); // Update list
+        setAdmins([...admins, res.data]);
         setFormData({
           fullname: "",
           email: "",
           password: "",
           confirmPassword: "",
+          uniqueId: "",
           role: "",
         });
         setOpenAddAdmin(false);
@@ -82,30 +84,11 @@ const ManageAdmins = () => {
     }
   };
 
-  // // Handle Delete Admin
-  // const handleDeleteAdmin = async () => {
-  //   if (!selectedAdmin) return;
-  //   setLoading(true);
-  //   try {
-  //     await axiosInstance.delete(`/admin/delete-admin/${selectedAdmin._id}`);
-  //     toast.success("Admin deleted successfully.");
-  //     setAdmins(admins.filter((admin) => admin._id !== selectedAdmin._id));
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error("Failed to delete admin.");
-  //   } finally {
-  //     setLoading(false);
-  //     setSelectedAdmin(null);
-  //     setConfirmAction(null);
-  //   }
-  // };
-
-  // Handle Block/Unblock Admin
   const handleBlockUnblockAdmin = async () => {
     if (!selectedAdmin) return;
     setLoading(true);
     try {
-      const updatedStatus = selectedAdmin.isBlocked ? false : true;
+      const updatedStatus = !selectedAdmin.isBlocked;
       await axiosInstance.patch(`/admin/block-admin/${selectedAdmin._id}`, {
         isBlocked: updatedStatus,
       });
@@ -154,24 +137,20 @@ const ManageAdmins = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
-
-                {/* <TableCell>Status</TableCell> */}
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {admins.map((admin) => (
                 <TableRow key={admin._id}>
-                  <TableCell>ID</TableCell>
+                  <TableCell>{admin.uniqueId}</TableCell>
                   <TableCell>{admin.fullname}</TableCell>
                   <TableCell>{admin.email}</TableCell>
-
-                  {/* <TableCell>{admin.isBlocked ? "Blocked" : "Active"}</TableCell> */}
                   <TableCell>
                     <Button
                       onClick={() => {
                         setSelectedAdmin(admin);
-                        setConfirmAction("block");
+                        setConfirmAction(admin.isBlocked ? "unblock" : "block");
                       }}
                       variant="contained"
                       color={admin.isBlocked ? "success" : "warning"}
@@ -187,7 +166,6 @@ const ManageAdmins = () => {
         </TableContainer>
       )}
 
-      {/* Add Admin Dialog */}
       <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
         <DialogTitle>Add New Admin</DialogTitle>
         <DialogContent>
@@ -240,27 +218,18 @@ const ManageAdmins = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Confirmation Dialog */}
       <Dialog
         open={Boolean(confirmAction)}
         onClose={() => setConfirmAction(null)}
       >
         <DialogTitle>
-          Confirm {confirmAction === "delete" ? "Delete" : "Block/Unblock"}{" "}
-          Admin
+          Are you sure {confirmAction === "block" ? "Block" : "Unblock"} {selectedAdmin?.fullname} 
         </DialogTitle>
         <DialogActions>
           <Button onClick={() => setConfirmAction(null)} color="secondary">
             Cancel
           </Button>
-          <Button
-            onClick={
-              confirmAction === "delete"
-                ? handleDeleteAdmin
-                : handleBlockUnblockAdmin
-            }
-            color="primary"
-          >
+          <Button onClick={handleBlockUnblockAdmin} color="primary">
             Confirm
           </Button>
         </DialogActions>

@@ -2,7 +2,6 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   admin: null,
-  token: localStorage.getItem("token") || null,
 };
 
 const adminSlice = createSlice({
@@ -10,14 +9,11 @@ const adminSlice = createSlice({
   initialState,
   reducers: {
     loginAdmin: (state, action) => {
-      state.admin = action.payload; // Store admin data
-      state.token = action.payload.token; // Store token
-      localStorage.setItem("token", action.payload.token);
+      console.log("Admin Data Received in Redux:", action.payload); // Debugging log
+      state.admin = action.payload;
     },
     logoutAdmin: (state) => {
       state.admin = null;
-      state.token = null;
-      localStorage.removeItem("token");
     },
   },
 });
