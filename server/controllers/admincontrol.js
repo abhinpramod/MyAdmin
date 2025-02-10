@@ -2,6 +2,7 @@
 const  Admin = require ("../model/admin.js");
 const bcrypt = require("bcrypt");
 const   generateToken =require ("../lib/utils.js" )
+const sendEmail =require ("../lib/mailer.js" )
 
 const addadmin = async (req, res) => {
   const { email, password, fullname, role ,uniqueId} = req.body;
@@ -35,12 +36,18 @@ const addadmin = async (req, res) => {
       });
 
       await newadmin.save(); // Save the admin
+      const subject = 'Welcome to Our Application';
+      const text = `Hello ${fullname},\n\nYou have been added as an admin to our application.\n\nPlease use the following credentials to log in:\n\nEmail: ${email}\nPassword: ${password}\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+  
+      sendEmail(email, subject, text);
+      console.log("Email sent:", email, subject, text);
 
       return res.status(201).json({
           _id: newadmin._id,
           fullname: newadmin.fullname,
           email: newadmin.email,
-          role: newadmin.role
+          role: newadmin.role,
+          uniqueId: newadmin.uniqueId
       });
 
   } catch (error) {
