@@ -81,8 +81,8 @@ const ManageAdmins = () => {
   const filteredAdmins = admins.filter((admin) =>
     admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
     admin.email.toLowerCase().includes(searchTerm.toLowerCase())||
-    admin.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())||
-    admin.isBlocked===searchTerm.toLowerCase() 
+    admin.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())
+  
   );
 
   return (
