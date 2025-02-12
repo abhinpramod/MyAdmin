@@ -78,18 +78,22 @@ const ManageAdmins = () => {
     }
   };
 
-  const filteredAdmins = admins.filter((admin) =>
-    admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    admin.email.toLowerCase().includes(searchTerm.toLowerCase())||
-    admin.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())
-  
+  const filteredAdmins = admins.filter(
+    (admin) =>
+      admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      admin.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Manage Admins</h2>
-        <Button variant="contained" color="primary" onClick={() => setOpenAddAdmin(true)}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setOpenAddAdmin(true)}
+        >
           Add Admin
         </Button>
       </div>
@@ -118,11 +122,14 @@ const ManageAdmins = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-            {filteredAdmins.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4}> <center>No admins found..</center></TableCell>
-              </TableRow>
-            )}
+              {filteredAdmins.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4}>
+                    {" "}
+                    <center>No admins found..</center>
+                  </TableCell>
+                </TableRow>
+              )}
               {filteredAdmins.map((admin) => (
                 <TableRow key={admin._id}>
                   <TableCell>{admin.uniqueId}</TableCell>
@@ -130,16 +137,16 @@ const ManageAdmins = () => {
                   <TableCell>{admin.email}</TableCell>
                   <TableCell>
                     <Button
-                                          onClick={() => {
-                                            setSelectedAdmin(admin);
-                                            setConfirmAction(admin.isBlocked ? "unblock" : "block");
-                                          }}
-                                          variant="contained"
-                                          color={admin.isBlocked ? "success" : "warning"}
-                                          style={{ marginRight: "8px" }}
-                                        >
-                                          {admin.isBlocked ? "Unblock" : "Block"}
-                                        </Button>
+                      onClick={() => {
+                        setSelectedAdmin(admin);
+                        setConfirmAction(admin.isBlocked ? "unblock" : "block");
+                      }}
+                      variant="contained"
+                      color={admin.isBlocked ? "success" : "warning"}
+                      style={{ marginRight: "8px" }}
+                    >
+                      {admin.isBlocked ? "Unblock" : "Block"}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -148,7 +155,10 @@ const ManageAdmins = () => {
         </TableContainer>
       )}
 
-      <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
+      <Dialog
+        open={Boolean(confirmAction)}
+        onClose={() => setConfirmAction(null)}
+      >
         <DialogTitle>
           Are you sure you want to {confirmAction} {selectedAdmin?.fullname}?
         </DialogTitle>
