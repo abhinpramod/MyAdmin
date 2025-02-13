@@ -223,7 +223,7 @@ const ManageAdmins = () => {
         onClose={() => setConfirmAction(null)}
       >
         <DialogTitle>
-          Are you sure {confirmAction === "block" ? "Block" : "Unblock"} {selectedAdmin?.fullname} 
+          Are you  {confirmAction === "block" ? "Block" : "Unblock"} {selectedAdmin?.fullname} 
         </DialogTitle>
         <DialogActions>
           <Button onClick={() => setConfirmAction(null)} color="secondary">
