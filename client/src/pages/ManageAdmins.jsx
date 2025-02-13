@@ -50,24 +50,43 @@ const ManageAdmins = () => {
     fetchAdmins();
   }, []);
 
+  const handleAddAdmin = async () => {
+    if (!formData.fullname.trim()) return toast.error("Full Name is required");
+    if (!formData.email.trim()) return toast.error("Email is required");
+    if (!/\S+@\S+\.\S+/.test(formData.email))
+      return toast.error("Invalid email format");
+    if (!formData.password) return toast.error("Password is required");
+    if (formData.password.length < 6)
+      return toast.error("Password must be at least 6 characters");
+    if (formData.password !== formData.confirmPassword)
+      return toast.error("Passwords do not match");
+
+    const uniqueId = uuid().slice(2, 8); 
+    const finalData = { ...formData, uniqueId };
+
+    try {
+      const res = await axiosInstance.post("/admin/addadmin", finalData);
+      if (res.status === 201) {
+        toast.success("Admin added successfully!");
+        setAdmins([...admins, res.data]);
+        setFormData({ fullname: "", email: "", password: "", confirmPassword: "", uniqueId: "", role: "" });
+        setOpenAddAdmin(false);
+      }
+    } catch (error) {
+      console.error("Error adding admin:", error);
+      toast.error(error.response?.data?.msg || "Failed to add admin");
+    }
+  };
+
   const handleBlockUnblockAdmin = async () => {
     if (!selectedAdmin) return;
     setLoading(true);
     try {
       const updatedStatus = !selectedAdmin.isBlocked;
-      await axiosInstance.patch(`/admin/block-admin/${selectedAdmin._id}`, {
-        isBlocked: updatedStatus,
-      });
-      toast.success(
-        `Admin ${updatedStatus ? "blocked" : "unblocked"} successfully.`
-      );
-      setAdmins(
-        admins.map((admin) =>
-          admin._id === selectedAdmin._id
-            ? { ...admin, isBlocked: updatedStatus }
-            : admin
-        )
-      );
+      const endpoint = updatedStatus ? `/admin/block-admin/${selectedAdmin._id}` : `/admin/unblock-admin/${selectedAdmin._id}`;
+      await axiosInstance.patch(endpoint, { adminId: selectedAdmin._id });
+      toast.success(`Admin ${updatedStatus ? "blocked" : "unblocked"} successfully`);
+      setAdmins(admins.map((admin) => (admin._id === selectedAdmin._id ? { ...admin, isBlocked: updatedStatus } : admin)));
     } catch (error) {
       console.error(error);
       toast.error("Failed to update admin status.");
@@ -78,33 +97,26 @@ const ManageAdmins = () => {
     }
   };
 
-  const filteredAdmins = admins.filter(
-    (admin) =>
-      admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      admin.uniqueId.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAdmins = admins.filter(admin =>
+    admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    admin.uniqueId.includes(searchTerm)
   );
 
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Manage Admins</h2>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenAddAdmin(true)}
-        >
-          Add Admin
-        </Button>
+        <TextField
+          label="Search Admins"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ marginRight: "8px" }}
+        />
+        <Button variant="contained" color="primary" onClick={() => setOpenAddAdmin(true)}>Add Admin</Button>
       </div>
-      <TextField
-        label="Search Admins"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
 
       {loading ? (
         <div className="flex items-center justify-center h-40">
@@ -122,14 +134,6 @@ const ManageAdmins = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredAdmins.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4}>
-                    {" "}
-                    <center>No admins found..</center>
-                  </TableCell>
-                </TableRow>
-              )}
               {filteredAdmins.map((admin) => (
                 <TableRow key={admin._id}>
                   <TableCell>{admin.uniqueId}</TableCell>
@@ -155,20 +159,29 @@ const ManageAdmins = () => {
         </TableContainer>
       )}
 
-      <Dialog
-        open={Boolean(confirmAction)}
-        onClose={() => setConfirmAction(null)}
-      >
+      {/* Add Admin Dialog */}
+      <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
+        <DialogTitle>Add New Admin</DialogTitle>
+        <DialogContent>
+          <TextField label="Full Name" fullWidth margin="normal" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
+          <TextField label="Email" fullWidth margin="normal" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <TextField label="Password" type="password" fullWidth margin="normal" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          <TextField label="Confirm Password" type="password" fullWidth margin="normal" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddAdmin(false)} color="secondary">Cancel</Button>
+          <Button onClick={handleAddAdmin} color="primary">Add</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirm Action Dialog */}
+      <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
         <DialogTitle>
-          Are you sure you want to {confirmAction} {selectedAdmin?.fullname}?
+          Are you sure you want to {confirmAction === "block" ? "block" : "unblock"} {selectedAdmin?.fullname}?
         </DialogTitle>
         <DialogActions>
-          <Button onClick={() => setConfirmAction(null)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleBlockUnblockAdmin} color="primary">
-            Confirm
-          </Button>
+          <Button onClick={() => setConfirmAction(null)} color="secondary">Cancel</Button>
+          <Button onClick={handleBlockUnblockAdmin} color="primary">Confirm</Button>
         </DialogActions>
       </Dialog>
     </div>

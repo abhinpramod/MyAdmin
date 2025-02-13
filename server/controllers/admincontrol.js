@@ -1,4 +1,3 @@
-// const  { generateToken }=require ("../lib/utils.js" )
 const  Admin = require ("../model/admin.js");
 const bcrypt = require("bcrypt");
 const   generateToken =require ("../lib/utils.js" )
@@ -120,7 +119,7 @@ const blockAdmin = async (req, res) => {
     admin.isBlocked = true;
     await admin.save();
 
-    res.json({ msg: "Admin blocked successfully" });
+    res.status(200).json({ msg: "Admin blocked successfully" });
   } catch (error) {
     console.error("Error blocking admin:", error.message);
     res.status(500).json({ msg: "Internal server error" });

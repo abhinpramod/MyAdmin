@@ -9,7 +9,7 @@ const adminSlice = createSlice({
   initialState,
   reducers: {
     loginAdmin: (state, action) => {
-      console.log("Admin Data Received in Redux:", action.payload); // Debugging log
+      console.log("Admin Data Received in Redux:", action.payload); 
       state.admin = action.payload;
     },
     logoutAdmin: (state) => {
