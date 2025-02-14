@@ -34,7 +34,7 @@ const ContractorRequests = () => {
   const handleApprove = async (id) => {
     try {
       // await axios.post(`/api/admin/requests/${id}/approve`);
-      await axiosInstance.post(`/contractor/requests/${id}/approve`);
+      await axiosInstance.patch(`/contractor/requests/approve/${id}`);
       if (tab === 0) {
         setStepOneRequests(stepOneRequests.filter(request => request.id !== id));
       } else {
@@ -48,9 +48,11 @@ const ContractorRequests = () => {
   const handleReject = async (id) => {
     try {
       // await axios.post(`/api/admin/requests/${id}/reject`);
-      await axiosInstance.post(`/contractor/requests/${id}/rejt`);
-      ec
+      await axiosInstance.patch(`/contractor/requests/reject/${id}`);
+      
       if (tab === 0) {
+        console.log('inthe tab1');
+        
         setStepOneRequests(stepOneRequests.filter(request => request.id !== id));
       } else {
         setDocRequests(docRequests.filter(request => request.id !== id));
@@ -102,7 +104,7 @@ const ContractorRequests = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => handleApprove(request.id)}
+              onClick={() => handleApprove(request._id)}
               sx={{ textTransform: 'none', fontWeight: 'bold', px: 3, py: 1, borderRadius: 1 }}
             >
               Approve
@@ -110,7 +112,7 @@ const ContractorRequests = () => {
             <Button
               variant="contained"
               color="error"
-              onClick={() => handleReject(request.id)}
+              onClick={() => handleReject(request._id)}
               sx={{ textTransform: 'none', fontWeight: 'bold', px: 3, py: 1, borderRadius: 1 }}
             >
               Reject
