@@ -3,15 +3,17 @@ const app = express();
 const dotenv = require("dotenv");
 const {connectDB }= require("./lib/db");
 const admincontrol = require("./routes/adminroutes")
+const contractorcontrol = require("./routes/contractorcontrol")
 dotenv.config();
 const cors = require("cors");
 const CookieParser = require("cookie-parser");
 app.use(express.json());
 app.use(CookieParser());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "http://localhost:5174", credentials: true }));
 
 
 app.use('/api/admin',admincontrol)
+app.use('/api/contractor',contractorcontrol)
 connectDB()
   .then(() => {
     const PORT = process.env.PORT || 3000;

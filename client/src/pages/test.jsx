@@ -1,241 +1,193 @@
-import { useState, useEffect } from "react";
-import axiosInstance from "../lib/aixos";
-import { toast } from "react-hot-toast";
-import React from "react";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-} from "@mui/material";
-import { v4 as uuid } from "uuid";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, Button, Pagination, Tabs, Tab, CircularProgress } from '@mui/material';
+import axios from 'axios';
 
-const ManageAdmins = () => {
-  const [admins, setAdmins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAdmin, setSelectedAdmin] = useState(null);
-  const [openAddAdmin, setOpenAddAdmin] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null);
-  const [formData, setFormData] = useState({
-    fullname: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "",
-  });
+const ContractorRequests = () => {
+  const [tab, setTab] = useState(0);
+  const [requests, setRequests] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAdmins = async () => {
+    const fetchRequests = async () => {
+      setLoading(true);
       try {
-        const response = await axiosInstance.get("/admin/get-all-admins");
-        setAdmins(response.data);
+        const response = await axios.get(`/api/admin/requests?step=${tab + 1}&page=${page}`);
+        setRequests(response.data.requests || []);
+        setTotalPages(response.data.totalPages || 1);
       } catch (error) {
-        console.error(error);
-        toast.error("Failed to fetch admins.");
+        console.error('Error fetching requests:', error);
+        setRequests([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchAdmins();
-  }, []);
 
-  const handleAddAdmin = async () => {
-    if (!formData.fullname.trim()) return toast.error("Full Name is required");
-    if (!formData.email.trim()) return toast.error("Email is required");
-    if (!/\S+@\S+\.\S+/.test(formData.email))
-      return toast.error("Invalid email format");
-    if (!formData.password) return toast.error("Password is required");
-    if (formData.password.length < 6)
-      return toast.error("Password must be at least 6 characters");
-    if (formData.password !== formData.confirmPassword)
-      return toast.error("Passwords do not match");
+    fetchRequests();
+  }, [tab, page]);
 
-    const uniqueId = uuid().slice(2, 8);
-    const finalData = { ...formData, uniqueId };
-
+  const handleApprove = async (id) => {
     try {
-      const res = await axiosInstance.post("/admin/addadmin", finalData);
-      if (res.status === 201) {
-        toast.success("Admin added successfully!");
-        setAdmins([...admins, res.data]);
-        setFormData({
-          fullname: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-          uniqueId: "",
-          role: "",
-        });
-        setOpenAddAdmin(false);
-      }
+      await axios.post(`/api/admin/requests/${id}/approve`);
+      setRequests(requests.filter(request => request.id !== id));
     } catch (error) {
-      console.error("Error adding admin:", error);
-      toast.error(error.response?.data?.msg || "Failed to add admin");
+      console.error('Error approving request:', error);
     }
   };
 
-  const handleBlockUnblockAdmin = async () => {
-    if (!selectedAdmin) return;
-    setLoading(true);
+  const handleReject = async (id) => {
     try {
-      const updatedStatus = !selectedAdmin.isBlocked;
-      await axiosInstance.patch(`/admin/block-admin/${selectedAdmin._id}`, {
-        isBlocked: updatedStatus,
-      });
-      toast.success(
-        `Admin ${updatedStatus ? "blocked" : "unblocked"} successfully.`
-      );
-      setAdmins(
-        admins.map((admin) =>
-          admin._id === selectedAdmin._id
-            ? { ...admin, isBlocked: updatedStatus }
-            : admin
-        )
-      );
+      await axios.post(`/api/admin/requests/${id}/reject`);
+      setRequests(requests.filter(request => request.id !== id));
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to update admin status.");
-    } finally {
-      setLoading(false);
-      setSelectedAdmin(null);
-      setConfirmAction(null);
+      console.error('Error rejecting request:', error);
     }
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Manage Admins</h2>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenAddAdmin(true)}
-        >
-          Add Admin
-        </Button>
-      </div>
-
+    <div className="p-4">
+      <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)} aria-label="contractor request tabs">
+        <Tab label="Step 1 Verification" />
+        <Tab label="Document Verification" />
+      </Tabs>
       {loading ? (
-        <div className="flex items-center justify-center h-40">
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
           <CircularProgress />
         </div>
+      ) : requests.length > 0 ? (
+        requests.map(request => (
+          <Card key={request.id} sx={{ my: 2, p: 2 }}>
+            <CardContent>
+              <h2>{request.companyName}</h2>
+              <p>Contractor: {request.contractorName}</p>
+              <p>Email: {request.email}</p>
+              <p>Phone: {request.phone}</p>
+              {tab === 1 && (
+                <>
+                  <p>GST Number: {request.gstNumber}</p>
+                  <p>License Document: <a href={request.licenseDoc} target="_blank" rel="noopener noreferrer">View Document</a></p>
+                </>
+              )}
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <Button variant="contained" color="primary" onClick={() => handleApprove(request.id)}>Approve</Button>
+                <Button variant="contained" color="error" onClick={() => handleReject(request.id)}>Reject</Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {admins.map((admin) => (
-                <TableRow key={admin._id}>
-                  <TableCell>{admin.uniqueId}</TableCell>
-                  <TableCell>{admin.fullname}</TableCell>
-                  <TableCell>{admin.email}</TableCell>
-                  <TableCell>
-                      <Button
-                        onClick={() => {
-                          setSelectedAdmin(admin);
-                          setConfirmAction(admin.isBlocked ? "unblock" : "block");
-                        }}
-                        variant="contained"
-                        color={admin.isBlocked ? "success" : "warning"}
-                        style={{ marginRight: "8px" }}
-                      >
-                        {admin.isBlocked ? "Unblock" : "Block"}
-                      </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <p style={{ textAlign: 'center', marginTop: '20px' }}>No requests found.</p>
       )}
-
-      <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
-        <DialogTitle>Add New Admin</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Full Name"
-            fullWidth
-            margin="normal"
-            value={formData.fullname}
-            onChange={(e) =>
-              setFormData({ ...formData, fullname: e.target.value })
-            }
-          />
-          <TextField
-            label="Email"
-            fullWidth
-            margin="normal"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-          />
-          <TextField
-            label="Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-          />
-          <TextField
-            label="Confirm Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={formData.confirmPassword}
-            onChange={(e) =>
-              setFormData({ ...formData, confirmPassword: e.target.value })
-            }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAddAdmin(false)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleAddAdmin} color="primary">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={Boolean(confirmAction)}
-        onClose={() => setConfirmAction(null)}
-      >
-        <DialogTitle>
-          Are you  {confirmAction === "block" ? "Block" : "Unblock"} {selectedAdmin?.fullname} 
-        </DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setConfirmAction(null)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleBlockUnblockAdmin} color="primary">
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Pagination
+        count={totalPages}
+        page={page}
+        onChange={(_, newPage) => setPage(newPage)}
+        sx={{ mt: 2 }}
+      />
     </div>
   );
 };
 
-export default ManageAdmins;
+export default ContractorRequests;
+
+
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, Button, Tabs, Tab, CircularProgress, Typography, Box } from '@mui/material';
+import toast from 'react-hot-toast';
+import axiosInstance from '../lib/aixos';
+
+// const ContractorRequests = () => {
+  const [tab, setTab] = useState(0);
+  const [stepOneRequests, setStepOneRequests] = useState([]);
+  const [docRequests, setDocRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      setLoading(true);
+      try {
+        const endpoint = tab === 0 ? '/contractor/requests/step-one' : '/contractor/requests/documents';
+        const response = await axiosInstance.get(endpoint);
+        if (tab === 0) {
+          setStepOneRequests(response.data || []);
+        } else {
+          setDocRequests(response.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+        toast.error(response?.data?.msg || 'Failed to fetch requests');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [tab]);
+
+  const handleApprove = async (id) => { /* approval logic */ };
+  const handleReject = async (id) => { /* rejection logic */ };
+
+  const renderRequests = (requests, tab, handleApprove, handleReject) => (
+    requests.map(request => (
+      <Card key={request.id} sx={{ my: 2, p: 2, boxShadow: 3, borderRadius: 2, transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}>
+        <CardContent>
+          <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', mb: 1 }}>
+            {request.companyName}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            <strong>Contractor:</strong> {request.contractorName}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            <strong>Email:</strong> {request.email}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            <strong>Phone:</strong> {request.phone}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            <strong>number of employees:</strong> {request.numberOfEmployees}
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            <strong>jobtypes:</strong> {request.jobTypes}
+          </Typography>
+          {tab === 1 && (
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              <strong>GST Number:</strong> {request.gstNumber}
+            </Typography>
+          )}
+          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleApprove(request.id)}
+              sx={{ textTransform: 'none', fontWeight: 'bold', px: 3, py: 1 }}
+            >
+              Approve
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => handleReject(request.id)}
+              sx={{ textTransform: 'none', fontWeight: 'bold', px: 3, py: 1 }}
+            >
+              Reject
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
+    ))
+  );
+
+  return (
+    <div className="p-4">
+      <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
+        <Tab label="Step 1 Verification" />
+        <Tab label="Document Verification" />
+      </Tabs>
+      {loading ? <CircularProgress /> : (tab === 0 ? renderRequests(stepOneRequests) : renderRequests(docRequests))}
+    </div>
+  );
+// };
+
+// export default ContractorRequests;
