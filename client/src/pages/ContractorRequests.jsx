@@ -33,7 +33,8 @@ const ContractorRequests = () => {
 
   const handleApprove = async (id) => {
     try {
-      await axios.post(`/api/admin/requests/${id}/approve`);
+      // await axios.post(`/api/admin/requests/${id}/approve`);
+      await axiosInstance.post(`/contractor/requests/${id}/approve`);
       if (tab === 0) {
         setStepOneRequests(stepOneRequests.filter(request => request.id !== id));
       } else {
@@ -46,7 +47,9 @@ const ContractorRequests = () => {
   
   const handleReject = async (id) => {
     try {
-      await axios.post(`/api/admin/requests/${id}/reject`);
+      // await axios.post(`/api/admin/requests/${id}/reject`);
+      await axiosInstance.post(`/contractor/requests/${id}/rejt`);
+      ec
       if (tab === 0) {
         setStepOneRequests(stepOneRequests.filter(request => request.id !== id));
       } else {
