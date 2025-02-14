@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Button, Tabs, Tab, CircularProgress, Typography, Box } from '@mui/material';
-import toast from 'react-hot-toast';
-import axiosInstance from '../lib/aixos';
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  Button,
+  Tabs,
+  Tab,
+  CircularProgress,
+  Typography,
+  Box,
+} from "@mui/material";
+import toast from "react-hot-toast";
+import axiosInstance from "../lib/aixos";
 
 const ContractorRequests = () => {
   const [tab, setTab] = useState(0);
@@ -13,7 +22,10 @@ const ContractorRequests = () => {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const endpoint = tab === 0 ? '/contractor/requests/step-one' : '/contractor/requests/documents';
+        const endpoint =
+          tab === 0
+            ? "/contractor/requests/step-one"
+            : "/contractor/requests/documents";
         const response = await axiosInstance.get(endpoint);
         if (tab === 0) {
           setStepOneRequests(response.data || []);
@@ -21,8 +33,8 @@ const ContractorRequests = () => {
           setDocRequests(response.data || []);
         }
       } catch (error) {
-        console.error('Error fetching requests:', error);
-        toast.error(error.response?.data?.msg || 'Failed to fetch requests');
+        console.error("Error fetching requests:", error);
+        toast.error(error.response?.data?.msg || "Failed to fetch requests");
       } finally {
         setLoading(false);
       }
@@ -36,34 +48,38 @@ const ContractorRequests = () => {
       // await axios.post(`/api/admin/requests/${id}/approve`);
       await axiosInstance.patch(`/contractor/requests/approve/${id}`);
       if (tab === 0) {
-        setStepOneRequests(stepOneRequests.filter(request => request.id !== id));
+        setStepOneRequests(
+          stepOneRequests.filter((request) => request.id !== id)
+        );
       } else {
-        setDocRequests(docRequests.filter(request => request.id !== id));
+        setDocRequests(docRequests.filter((request) => request.id !== id));
       }
     } catch (error) {
-      console.error('Error approving request:', error);
+      console.error("Error approving request:", error);
     }
   };
-  
+
   const handleReject = async (id) => {
     try {
       // await axios.post(`/api/admin/requests/${id}/reject`);
       await axiosInstance.patch(`/contractor/requests/reject/${id}`);
-      
+
       if (tab === 0) {
-        console.log('inthe tab1');
-        
-        setStepOneRequests(stepOneRequests.filter(request => request.id !== id));
+        console.log("inthe tab1");
+
+        setStepOneRequests(
+          stepOneRequests.filter((request) => request.id !== id)
+        );
       } else {
-        setDocRequests(docRequests.filter(request => request.id !== id));
+        setDocRequests(docRequests.filter((request) => request.id !== id));
       }
     } catch (error) {
-      console.error('Error rejecting request:', error);
+      console.error("Error rejecting request:", error);
     }
   };
 
-  const renderRequests = (requests) => (
-    requests.map(request => (
+  const renderRequests = (requests) =>
+    requests.map((request) => (
       <Card
         key={request.id}
         sx={{
@@ -71,41 +87,51 @@ const ContractorRequests = () => {
           p: 2,
           boxShadow: 3,
           borderRadius: 2,
-          transition: 'transform 0.2s',
-          '&:hover': { transform: 'scale(1.02)' },
-          backgroundColor: '#f9f9f9',
+          transition: "transform 0.2s",
+          "&:hover": { transform: "scale(1.02)" },
+          backgroundColor: "#f9f9f9",
         }}
       >
         <CardContent>
-          <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', mb: 2, color: '#333' }}>
+          <Typography
+            variant="h5"
+            component="h2"
+            sx={{ fontWeight: "bold", mb: 2, color: "#333" }}
+          >
             {request.companyName}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: '#555' }}>
+          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
             <strong>Contractor:</strong> {request.contractorName}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: '#555' }}>
+          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
             <strong>Email:</strong> {request.email}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: '#555' }}>
+          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
             <strong>Phone:</strong> {request.phone}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: '#555' }}>
+          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
             <strong>Number of Employees:</strong> {request.numberOfEmployees}
           </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: '#555' }}>
-            <strong>Job Types:</strong> {request.jobTypes.join(', ')}
+          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+            <strong>Job Types:</strong> {request.jobTypes.join(", ")}
           </Typography>
           {tab === 1 && (
-            <Typography variant="body1" sx={{ mb: 2, color: '#555' }}>
+            <Typography variant="body1" sx={{ mb: 2, color: "#555" }}>
               <strong>GST Number:</strong> {request.gstNumber}
             </Typography>
           )}
-          <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
             <Button
               variant="contained"
               color="primary"
               onClick={() => handleApprove(request._id)}
-              sx={{ textTransform: 'none', fontWeight: 'bold', px: 3, py: 1, borderRadius: 1 }}
+              sx={{
+                textTransform: "none",
+                fontWeight: "bold",
+                px: 3,
+                py: 1,
+                borderRadius: 1,
+              }}
             >
               Approve
             </Button>
@@ -113,15 +139,20 @@ const ContractorRequests = () => {
               variant="contained"
               color="error"
               onClick={() => handleReject(request._id)}
-              sx={{ textTransform: 'none', fontWeight: 'bold', px: 3, py: 1, borderRadius: 1 }}
+              sx={{
+                textTransform: "none",
+                fontWeight: "bold",
+                px: 3,
+                py: 1,
+                borderRadius: 1,
+              }}
             >
               Reject
             </Button>
           </Box>
         </CardContent>
       </Card>
-    ))
-  );
+    ));
 
   return (
     <div className="p-4">
@@ -130,20 +161,22 @@ const ContractorRequests = () => {
         onChange={(_, newValue) => setTab(newValue)}
         sx={{
           mb: 3,
-          '& .MuiTabs-indicator': { backgroundColor: '#1976d2' },
-          '& .MuiTab-root': { fontWeight: 'bold', color: '#555' },
-          '& .Mui-selected': { color: '#1976d2' },
+          "& .MuiTabs-indicator": { backgroundColor: "#1976d2" },
+          "& .MuiTab-root": { fontWeight: "bold", color: "#555" },
+          "& .Mui-selected": { color: "#1976d2" },
         }}
       >
         <Tab label="Step 1 Verification" />
         <Tab label="Document Verification" />
       </Tabs>
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
         </Box>
+      ) : tab === 0 ? (
+        renderRequests(stepOneRequests)
       ) : (
-        tab === 0 ? renderRequests(stepOneRequests) : renderRequests(docRequests)
+        renderRequests(docRequests)
       )}
     </div>
   );
