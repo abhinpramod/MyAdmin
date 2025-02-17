@@ -10,6 +10,32 @@ const allusers = async (req, res) => {
   }
 };
 
+const toggleBlockStatus = async (req, res) => {
+  try {
+    const { userId } = req.params; // Extract userId from the URL
+    const { isBlocked } = req.body; // Extract isBlocked from request body
+
+    // Find the user by ID and update isBlocked status
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { isBlocked },
+      { new: true } // Returns the updated user
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, message: "User status updated", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating user block status:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
 module.exports = {
   allusers,
+  toggleBlockStatus,
 };
