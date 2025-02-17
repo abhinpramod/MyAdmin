@@ -8,6 +8,12 @@ import {
   CircularProgress,
   Typography,
   Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
 } from "@mui/material";
 import toast from "react-hot-toast";
 import axiosInstance from "../lib/aixos";
@@ -16,79 +22,92 @@ const ContractorRequests = () => {
   const [tab, setTab] = useState(0);
   const [stepOneRequests, setStepOneRequests] = useState([]);
   const [docRequests, setDocRequests] = useState([]);
+  const [filteredRequests, setFilteredRequests] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    action: null,
+    contractorId: null,
+  });
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      setLoading(true);
-      try {
-        const endpoint =
-          tab === 0
-            ? "/contractor/requests/step-one"
-            : "/contractor/requests/documents";
-        const response = await axiosInstance.get(endpoint);
-        if (tab === 0) {
-          setStepOneRequests(response.data || []);
-        } else {
-          setDocRequests(response.data || []);
-        }
-      } catch (error) {
-        console.error("Error fetching requests:", error);
-        toast.error(error.response?.data?.msg || "Failed to fetch requests");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRequests();
-  }, [tab]);
-
-  const handleApprove = async (id) => {
+  const fetchRequests = async () => {
+    setLoading(true);
     try {
-      // await axios.post(`/api/admin/requests/${id}/approve`);
-      await axiosInstance.patch(`/contractor/requests/approve/${id}`);
+      const endpoint =
+        tab === 0
+          ? "/contractor/requests/step-one"
+          : "/contractor/requests/documents";
+      const response = await axiosInstance.get(endpoint);
       if (tab === 0) {
-        setStepOneRequests(
-          stepOneRequests.filter((request) => request.id !== id)
-        );
+        setStepOneRequests(response.data || []);
+        setFilteredRequests(response.data || []);
       } else {
-        setDocRequests(docRequests.filter((request) => request.id !== id));
+        setDocRequests(response.data || []);
+        setFilteredRequests(response.data || []);
       }
     } catch (error) {
-      console.error("Error approving request:", error);
+      console.error("Error fetching requests:", error);
+      toast.error(error.response?.data?.msg || "Failed to fetch requests");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReject = async (id) => {
+  useEffect(() => {
+    fetchRequests();
+  }, [tab]);
+
+  useEffect(() => {
+    const filtered = (tab === 0 ? stepOneRequests : docRequests).filter(
+      (request) =>
+        request.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.contractorName
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.phone.includes(searchTerm)
+    );
+    setFilteredRequests(filtered);
+  }, [searchTerm, tab, stepOneRequests, docRequests]);
+
+  const handleConfirm = (action, id) => {
+    setConfirmDialog({ open: true, action, contractorId: id });
+  };
+
+  const handleApproveReject = async () => {
+    const { action, contractorId } = confirmDialog;
+    if (!contractorId) return;
+
     try {
-      // await axios.post(`/api/admin/requests/${id}/reject`);
-      await axiosInstance.patch(`/contractor/requests/reject/${id}`);
+      const endpoint =
+        action === "approve"
+          ? `/contractor/requests/approve/${contractorId}`
+          : `/contractor/requests/reject/${contractorId}`;
 
-      if (tab === 0) {
-        console.log("inthe tab1");
-
-        setStepOneRequests(
-          stepOneRequests.filter((request) => request.id !== id)
-        );
-      } else {
-        setDocRequests(docRequests.filter((request) => request.id !== id));
-      }
+      await axiosInstance.patch(endpoint);
+      toast.success(`Request ${action}d successfully!`);
+      fetchRequests(); // Re-fetch data after action
     } catch (error) {
-      console.error("Error rejecting request:", error);
+      console.error(`Error ${action}ing request:`, error);
+      toast.error(error.response?.data?.msg || `Failed to ${action} request`);
+    } finally {
+      setConfirmDialog({ open: false, action: null, contractorId: null });
     }
   };
 
   const renderRequests = (requests) =>
     requests.map((request) => (
       <Card
-        key={request.id}
+        key={request._id}
         sx={{
           my: 2,
           p: 2,
           boxShadow: 3,
           borderRadius: 2,
-          transition: "transform 0.2s",
-          "&:hover": { transform: "scale(1.02)" },
+          // transition: "transform 0.2s",
+
+          // "&:hover": { transform: "scale(1.02)" },
           backgroundColor: "#f9f9f9",
         }}
       >
@@ -124,7 +143,7 @@ const ContractorRequests = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={() => handleApprove(request._id)}
+              onClick={() => handleConfirm("approve", request._id)}
               sx={{
                 textTransform: "none",
                 fontWeight: "bold",
@@ -138,7 +157,7 @@ const ContractorRequests = () => {
             <Button
               variant="contained"
               color="error"
-              onClick={() => handleReject(request._id)}
+              onClick={() => handleConfirm("reject", request._id)}
               sx={{
                 textTransform: "none",
                 fontWeight: "bold",
@@ -169,15 +188,69 @@ const ContractorRequests = () => {
         <Tab label="Step 1 Verification" />
         <Tab label="Document Verification" />
       </Tabs>
+
+      {/* Search Input */}
+      <TextField
+        fullWidth
+        variant="outlined"
+        placeholder="Search by Company Name, Contractor Name, Email, or Phone"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        sx={{ mb: 2 }}
+      />
+
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <CircularProgress />
         </Box>
-      ) : tab === 0 ? (
-        renderRequests(stepOneRequests)
+      ) : filteredRequests.length > 0 ? (
+        renderRequests(filteredRequests)
       ) : (
-        renderRequests(docRequests)
+        <Typography sx={{ textAlign: "center", mt: 4, color: "#777" }}>
+          No requests found.
+        </Typography>
       )}
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() =>
+          setConfirmDialog({ open: false, action: null, contractorId: null })
+        }
+      >
+        <DialogTitle>
+          {confirmDialog.action === "approve"
+            ? "Approve Request"
+            : "Reject Request"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to <strong>{confirmDialog.action}</strong>{" "}
+            this request?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setConfirmDialog({
+                open: false,
+                action: null,
+                contractorId: null,
+              })
+            }
+            color="secondary"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleApproveReject}
+            color={confirmDialog.action === "approve" ? "primary" : "error"}
+            autoFocus
+          >
+            {confirmDialog.action === "approve" ? "Approve" : "Reject"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

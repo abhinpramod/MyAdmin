@@ -1,4 +1,5 @@
 const contractor = require("../model/contractor.js");
+const sendEmail = require("../lib/mailer.js");
 
 const requeststepone = async (req, res) => {
   try {
@@ -20,6 +21,15 @@ const requestreject = async (req, res) => {
     const data = await contractor.findByIdAndUpdate(id, {
       approvalStatus: "Rejected",
     });
+    console.log(data);
+    const contractorName = data.contractorName;
+    const email = data.email;
+    const subject = "Application rejected";
+    const text = `Hello ${contractorName},\n\nYour application has been rejected.\n\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+
+    sendEmail(email, subject, text);
+    console.log("Email sent:", email, subject, text);
+
     res.status(200).json(data);
   } catch (error) {
     console.log("error from requestreject :", error.message);
@@ -34,6 +44,13 @@ const requestapprove = async (req, res) => {
     const data = await contractor.findByIdAndUpdate(id, {
       approvalStatus: "Approved",
     });
+    const contractorName = data.contractorName;
+    const email = data.email;
+    const subject = "Application approved";
+    const text = `Hello ${contractorName},\n\nYour application has been approved.\n\n your passed first step of the registration process. and you  can now login to your account and complete the document verification process. Once you have completed the document verification, you will be able to complete the registration process and you can start working as a contractor.\n\n If you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+
+    sendEmail(email, subject, text);
+    console.log("Email sent:", email, subject, text);
     res.status(200).json(data);
   } catch (error) {
     console.log("error from requestapprove :", error.message);
