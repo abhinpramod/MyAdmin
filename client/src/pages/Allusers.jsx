@@ -53,13 +53,12 @@ const AllUsers = () => {
     try {
       await axiosInstance.put(`/user/block/${_id}`, { isBlocked: !isBlocked });
       toast.success(`User ${isBlocked ? "unblocked" : "blocked"} successfully`);
-      
+
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user._id === _id ? { ...user, isBlocked: !isBlocked } : user
         )
       );
-
     } catch (error) {
       console.error("Error updating block status:", error);
       toast.error("Failed to update user status.");
@@ -105,17 +104,24 @@ const AllUsers = () => {
 
       {/* Confirmation Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Confirm {selectedUser?.isBlocked ? "unblock" : "block"}</DialogTitle>
+        <DialogTitle>
+          Confirm {selectedUser?.isBlocked ? "unblock" : "block"}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to {selectedUser?.isBlocked ? "unblock" : "block"} this user?
+            Are you sure you want to{" "}
+            {selectedUser?.isBlocked ? "unblock" : "block"} this user?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
-          <Button onClick={handleConfirmAction} color="primary" variant="contained">
+          <Button
+            onClick={handleConfirmAction}
+            color="primary"
+            variant="contained"
+          >
             Confirm
           </Button>
         </DialogActions>
