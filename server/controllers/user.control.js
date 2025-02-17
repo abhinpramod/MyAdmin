@@ -21,6 +21,12 @@ const toggleBlockStatus = async (req, res) => {
       { isBlocked },
       { new: true } // Returns the updated user
     );
+    const userName = updatedUser.fullname;
+    const email = updatedUser.email;
+    const subject = "Account blocked";
+    const text = `Hello ${userName},\n\nYour account has been ${isBlocked ? "blocked" : "unblocked"}.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+
+    sendEmail(email, subject, text);
 
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: "User not found" });

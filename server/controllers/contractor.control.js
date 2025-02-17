@@ -73,6 +73,12 @@ const blockcontractor = async (req, res) => {
     console.log("blockcontractor");
     const { id } = req.params;
     const data = await contractor.findByIdAndUpdate(id, { isBlocked: true });
+    const contractorName = data.contractorName;
+    const email = data.email;
+    const subject = "Account blocked";
+    const text = `Hello ${contractorName},\n\nYour account has been blocked.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+
+    sendEmail(email, subject, text);
     res.status(200).json(data);
   } catch (error) {
     console.log("error from blockcontractor :", error.message);
@@ -85,6 +91,12 @@ const unblockcontractor = async (req, res) => {
     console.log("unblockcontractor");
     const { id } = req.params;
     const data = await contractor.findByIdAndUpdate(id, { isBlocked: false });
+    const contractorName = data.contractorName;
+    const email = data.email;
+    const subject = "Account unblocked";
+    const text = `Hello ${contractorName},\n\nYour account has been unblocked.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+
+    sendEmail(email, subject, text);
     res.status(200).json(data);
   } catch (error) {
     console.log("error from unblockcontractor :", error.message);
