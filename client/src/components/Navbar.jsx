@@ -12,11 +12,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // // Handle search action
-  // const handleSearch = (e) => {
-  //   e.preventDefault();
-  //   console.log("Searching for:", searchQuery);
-  // };
 
   // Handle logout action
   const handleLogout = async () => {
@@ -47,16 +42,7 @@ const Navbar = () => {
 
       {/* Right Side: Search Bar & Logout */}
       <div className="flex items-center space-x-4">
-        {/* Search Bar */}
-        {/* <form onSubmit={handleSearch} className="relative">
-          <input
-            type="text"
-            className="bg-gray-100 text-gray-800 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all w-64"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </form> */}
+      
 
         {/* Logout Button */}
         <button 
