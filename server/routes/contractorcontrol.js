@@ -8,7 +8,7 @@ const {
   allcontractors,
   blockcontractor,
   unblockcontractor,
-} = require("../middleware/contractor.control");
+} = require("../controllers/contractor.control");
 // const { blockAdmin } = require('../controllers/admincontrol');
 
 router.get("/get-all-contractors", allcontractors);
