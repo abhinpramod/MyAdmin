@@ -10,13 +10,14 @@ const {
   unblockcontractor,
 } = require("../controllers/contractor.control");
 // const { blockAdmin } = require('../controllers/admincontrol');
+const { protectRoute } = require("../middleware/authmiddleware");
 
-router.get("/get-all-contractors", allcontractors);
-router.get("/requests/step-one", requeststepone);
-router.patch("/requests/reject/:id", requestreject);
-router.patch("/requests/approve/:id", requestapprove);
+router.get("/get-all-contractors",protectRoute, allcontractors);
+router.get("/requests/step-one", protectRoute, requeststepone);
+router.patch("/requests/reject/:id", protectRoute, requestreject);
+router.patch("/requests/approve/:id", protectRoute, requestapprove);
 
-router.put("/block/:id", blockcontractor);
-router.put("/unblock/:id", unblockcontractor);
+router.put("/block/:id", protectRoute, blockcontractor);
+router.put("/unblock/:id", protectRoute, unblockcontractor);
 
 module.exports = router;

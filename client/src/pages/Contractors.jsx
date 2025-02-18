@@ -74,7 +74,7 @@ const AllContractors = () => {
       }
     } catch (error) {
       console.error("Error updating block status:", error);
-      toast.error("Failed to update block status.");
+      toast.error(error.response?.data?.msg || "Failed to update block status.");
     } finally {
       handleClose();
     }

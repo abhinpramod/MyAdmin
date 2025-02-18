@@ -75,7 +75,7 @@ const AllUsers = () => {
       );
     } catch (error) {
       console.error("Error updating block status:", error);
-      toast.error("Failed to update user status.");
+      toast.error(error.response?.data?.msg || "Failed to update user status");
     } finally {
       handleCloseDialog();
     }

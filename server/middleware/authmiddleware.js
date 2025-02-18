@@ -18,6 +18,10 @@ const protectRoute = async (req, res, next) => {
       return res.status(401).json({ msg: "Unauthorized" });
     }
     const admin = await Admin.findById(decoded.adminId);
+    if (admin.isBlocked) {
+    return res.status(401).json({ msg: "admin blocked" });
+    
+    }
     if (!admin) {
       return res.status(401).json({ msg: "Unauthorized" });
     }
