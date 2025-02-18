@@ -1,4 +1,5 @@
 const User = require("../model/user.js");
+const sendEmail = require("../lib/mailer.js");
 
 const allusers = async (req, res) => {
   try {
@@ -23,7 +24,7 @@ const toggleBlockStatus = async (req, res) => {
     );
     const userName = updatedUser.fullname;
     const email = updatedUser.email;
-    const subject = "Account blocked";
+    const subject = `Account ${isBlocked ? "blocked" : "unblocked"}`;
     const text = `Hello ${userName},\n\nYour account has been ${isBlocked ? "blocked" : "unblocked"}.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
 
     sendEmail(email, subject, text);

@@ -13,12 +13,15 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
 } from "@mui/material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -27,6 +30,7 @@ const AllUsers = () => {
       try {
         const response = await axiosInstance.get("/user/get-all-users");
         setUsers(response.data);
+        setFilteredUsers(response.data);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -34,6 +38,16 @@ const AllUsers = () => {
 
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    const results = users.filter((user) =>
+      [user.name, user.email, user.phone]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+    setFilteredUsers(results);
+  }, [searchTerm, users]);
 
   const handleOpenDialog = (user) => {
     setSelectedUser(user);
@@ -69,6 +83,15 @@ const AllUsers = () => {
 
   return (
     <>
+      <TextField
+        label="Search Users"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -81,7 +104,7 @@ const AllUsers = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <TableRow key={user._id}>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
@@ -109,19 +132,14 @@ const AllUsers = () => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to{" "}
-            {selectedUser?.isBlocked ? "unblock" : "block"} this user?
+            Are you sure you want to {selectedUser?.isBlocked ? "unblock" : "block"} this user?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirmAction}
-            color="primary"
-            variant="contained"
-          >
+          <Button onClick={handleConfirmAction} color="primary" variant="contained">
             Confirm
           </Button>
         </DialogActions>

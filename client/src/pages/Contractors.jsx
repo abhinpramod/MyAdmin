@@ -80,8 +80,10 @@ const AllContractors = () => {
     }
   };
 
+  // Updated search functionality to filter contractors by multiple fields
   const filteredContractors = contractors.filter((contractor) =>
-    contractor.companyName.toLowerCase().includes(searchTerm.toLowerCase())
+    [contractor.companyName, contractor.contractorName, contractor.email, contractor.phone, contractor.gstNumber]
+      .some((field) => field?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -161,7 +163,7 @@ const AllContractors = () => {
             Cancel
           </Button>
           <Button onClick={toggleBlock} color="primary" autoFocus>
-            {confirmDialog.isBlocked ? "unblock" : "block"}
+            {confirmDialog.isBlocked ? "Unblock" : "Block"}
           </Button>
         </DialogActions>
       </Dialog>
