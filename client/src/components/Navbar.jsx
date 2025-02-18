@@ -5,7 +5,14 @@ import { useDispatch } from "react-redux";
 import axiosInstance from "../lib/aixos";
 import { logoutAdmin } from "../redux/adminSlice";
 import { toast } from "react-hot-toast";
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -50,11 +57,17 @@ const Navbar = () => {
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>
-          <DialogContentText>Are you sure you want to log out?</DialogContentText>
+          <DialogContentText>
+            Are you sure you want to log out?
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">Cancel</Button>
-          <Button onClick={handleLogout} color="error" variant="contained">Logout</Button>
+          <Button onClick={handleClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleLogout} color="error" variant="contained">
+            Logout
+          </Button>
         </DialogActions>
       </Dialog>
     </>
