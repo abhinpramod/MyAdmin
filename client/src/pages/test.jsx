@@ -1,269 +1,241 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import axiosInstance from "../lib/aixos";
+import { toast } from "react-hot-toast";
+import React from "react";
 import {
-  Card,
-  CardContent,
   Button,
-  Pagination,
-  Tabs,
-  Tab,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
   CircularProgress,
+  Menu,
+  MenuItem,
+  IconButton,
+  Typography,
 } from "@mui/material";
-import axios from "axios";
+import { v4 as uuid } from "uuid";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-const ContractorRequests = () => {
-  const [tab, setTab] = useState(0);
-  const [requests, setRequests] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
+const ManageAdmins = () => {
+  const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [openAddAdmin, setOpenAddAdmin] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "",
+  });
+  const [anchorEl, setAnchorEl] = useState(null); // For dropdown menu
+  const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
-    const fetchRequests = async () => {
-      setLoading(true);
+    const fetchAdmins = async () => {
       try {
-        const response = await axios.get(
-          `/api/admin/requests?step=${tab + 1}&page=${page}`
-        );
-        setRequests(response.data.requests || []);
-        setTotalPages(response.data.totalPages || 1);
+        const response = await axiosInstance.get("/admin/get-all-admins");
+        setAdmins(response.data);
       } catch (error) {
-        console.error("Error fetching requests:", error);
-        setRequests([]);
+        console.error(error);
+        toast.error("Failed to fetch admins.");
       } finally {
         setLoading(false);
       }
     };
+    fetchAdmins();
+  }, []);
 
-    fetchRequests();
-  }, [tab, page]);
+  const handleAddAdmin = async () => {
+    if (!formData.fullname.trim()) return toast.error("Full Name is required");
+    if (!formData.email.trim()) return toast.error("Email is required");
+    if (!/\S+@\S+\.\S+/.test(formData.email))
+      return toast.error("Invalid email format");
+    if (!formData.password) return toast.error("Password is required");
+    if (formData.password.length < 6)
+      return toast.error("Password must be at least 6 characters");
+    if (formData.password !== formData.confirmPassword)
+      return toast.error("Passwords do not match");
 
-  const handleApprove = async (id) => {
+    const uniqueId = uuid().slice(2, 8);
+    const finalData = { ...formData, uniqueId };
+
     try {
-      await axios.post(`/api/admin/requests/${id}/approve`);
-      setRequests(requests.filter((request) => request.id !== id));
+      const res = await axiosInstance.post("/admin/addadmin", finalData);
+      if (res.status === 201) {
+        toast.success("Admin added successfully!");
+        setAdmins([...admins, res.data]);
+        setFormData({ fullname: "", email: "", password: "", confirmPassword: "", uniqueId: "", role: "" });
+        setOpenAddAdmin(false);
+      }
     } catch (error) {
-      console.error("Error approving request:", error);
+      console.error("Error adding admin:", error);
+      toast.error(error.response?.data?.msg || "Failed to add admin");
     }
   };
 
-  const handleReject = async (id) => {
+  const handleBlockUnblockAdmin = async () => {
+    if (!selectedAdmin) return;
+    setLoading(true);
     try {
-      await axios.post(`/api/admin/requests/${id}/reject`);
-      setRequests(requests.filter((request) => request.id !== id));
+      const updatedStatus = !selectedAdmin.isBlocked;
+      const endpoint = updatedStatus ? `/admin/block-admin/${selectedAdmin._id}` : `/admin/unblock-admin/${selectedAdmin._id}`;
+      await axiosInstance.patch(endpoint, { adminId: selectedAdmin._id });
+      toast.success(`Admin ${updatedStatus ? "blocked" : "unblocked"} successfully`);
+      setAdmins(admins.map((admin) => (admin._id === selectedAdmin._id ? { ...admin, isBlocked: updatedStatus } : admin)));
     } catch (error) {
-      console.error("Error rejecting request:", error);
+      console.error(error);
+      toast.error("Failed to update admin status.");
+    } finally {
+      setLoading(false);
+      setSelectedAdmin(null);
+      setConfirmAction(null);
     }
   };
+
+  const handleEditAdmin = (admin) => {
+    // Implement edit functionality here
+    toast.success(`Edit admin: ${admin.fullname}`);
+    setAnchorEl(null); // Close the menu
+  };
+
+  const handleMenuClick = (event, admin) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedAdmin(admin);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedAdmin(null);
+  };
+
+  const filteredAdmins = admins.filter(admin =>
+    admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    admin.uniqueId.includes(searchTerm)
+  );
 
   return (
-    <div className="p-4">
-      <Tabs
-        value={tab}
-        onChange={(_, newValue) => setTab(newValue)}
-        aria-label="contractor request tabs"
-      >
-        <Tab label="Step 1 Verification" />
-        <Tab label="Document Verification" />
-      </Tabs>
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Manage Admins</h2>
+        <TextField
+          label="Search Admins"
+          variant="outlined"
+          size="small"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ marginRight: "8px" }}
+        />
+        <Button variant="contained" color="primary" onClick={() => setOpenAddAdmin(true)}>Add Admin</Button>
+      </div>
+
       {loading ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "20px",
-          }}
-        >
+        <div className="flex items-center justify-center h-40">
           <CircularProgress />
         </div>
-      ) : requests.length > 0 ? (
-        requests.map((request) => (
-          <Card key={request.id} sx={{ my: 2, p: 2 }}>
-            <CardContent>
-              <h2>{request.companyName}</h2>
-              <p>Contractor: {request.contractorName}</p>
-              <p>Email: {request.email}</p>
-              <p>Phone: {request.phone}</p>
-              {tab === 1 && (
-                <>
-                  <p>GST Number: {request.gstNumber}</p>
-                  <p>
-                    License Document:{" "}
-                    <a
-                      href={request.licenseDoc}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Document
-                    </a>
-                  </p>
-                </>
-              )}
-              <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleApprove(request.id)}
-                >
-                  Approve
-                </Button>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => handleReject(request.id)}
-                >
-                  Reject
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))
       ) : (
-        <p style={{ textAlign: "center", marginTop: "20px" }}>
-          No requests found.
-        </p>
+        <TableContainer component={Paper} className="shadow-lg rounded-lg">
+          <Table>
+            <TableHead className="bg-gray-100">
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredAdmins.map((admin) => (
+                <TableRow key={admin._id} className="hover:bg-gray-50">
+                  <TableCell>{admin.uniqueId}</TableCell>
+                  <TableCell>{admin.fullname}</TableCell>
+                  <TableCell>{admin.email}</TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      className={`inline-block px-2 py-1 rounded-full text-sm ${
+                        admin.isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {admin.isBlocked ? "Blocked" : "Active"}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      aria-label="more"
+                      aria-controls="long-menu"
+                      aria-haspopup="true"
+                      onClick={(e) => handleMenuClick(e, admin)}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-      <Pagination
-        count={totalPages}
-        page={page}
-        onChange={(_, newPage) => setPage(newPage)}
-        sx={{ mt: 2 }}
-      />
+
+      {/* Add Admin Dialog */}
+      <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
+        <DialogTitle>Add New Admin</DialogTitle>
+        <DialogContent>
+          <TextField label="Full Name" fullWidth margin="normal" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
+          <TextField label="Email" fullWidth margin="normal" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <TextField label="Password" type="password" fullWidth margin="normal" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          <TextField label="Confirm Password" type="password" fullWidth margin="normal" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddAdmin(false)} color="secondary">Cancel</Button>
+          <Button onClick={handleAddAdmin} color="primary">Add</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirm Action Dialog */}
+      <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
+        <DialogTitle>
+          Are you sure you want to {confirmAction === "block" ? "block" : "unblock"} {selectedAdmin?.fullname}?
+        </DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setConfirmAction(null)} color="secondary">Cancel</Button>
+          <Button onClick={handleBlockUnblockAdmin} color="primary">Confirm</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Actions Dropdown Menu */}
+      <Menu
+        id="long-menu"
+        anchorEl={anchorEl}
+        keepMounted
+        open={openMenu}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={() => handleEditAdmin(selectedAdmin)}>Edit</MenuItem>
+        <MenuItem
+          onClick={() => {
+            setConfirmAction(selectedAdmin.isBlocked ? "unblock" : "block");
+            handleMenuClose();
+          }}
+        >
+          {selectedAdmin?.isBlocked ? "Unblock" : "Block"}
+        </MenuItem>
+      </Menu>
     </div>
   );
 };
 
-export default ContractorRequests;
-
-import React, { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  Button,
-  Tabs,
-  Tab,
-  CircularProgress,
-  Typography,
-  Box,
-} from "@mui/material";
-import toast from "react-hot-toast";
-import axiosInstance from "../lib/aixos";
-
-// const ContractorRequests = () => {
-const [tab, setTab] = useState(0);
-const [stepOneRequests, setStepOneRequests] = useState([]);
-const [docRequests, setDocRequests] = useState([]);
-const [loading, setLoading] = useState(false);
-
-useEffect(() => {
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const endpoint =
-        tab === 0
-          ? "/contractor/requests/step-one"
-          : "/contractor/requests/documents";
-      const response = await axiosInstance.get(endpoint);
-      if (tab === 0) {
-        setStepOneRequests(response.data || []);
-      } else {
-        setDocRequests(response.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-      toast.error(response?.data?.msg || "Failed to fetch requests");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchRequests();
-}, [tab]);
-
-const handleApprove = async (id) => {
-  /* approval logic */
-};
-const handleReject = async (id) => {
-  /* rejection logic */
-};
-
-const renderRequests = (requests, tab, handleApprove, handleReject) =>
-  requests.map((request) => (
-    <Card
-      key={request.id}
-      sx={{
-        my: 2,
-        p: 2,
-        boxShadow: 3,
-        borderRadius: 2,
-        transition: "transform 0.2s",
-        "&:hover": { transform: "scale(1.02)" },
-      }}
-    >
-      <CardContent>
-        <Typography
-          variant="h5"
-          component="h2"
-          sx={{ fontWeight: "bold", mb: 1 }}
-        >
-          {request.companyName}
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          <strong>Contractor:</strong> {request.contractorName}
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          <strong>Email:</strong> {request.email}
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          <strong>Phone:</strong> {request.phone}
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          <strong>number of employees:</strong> {request.numberOfEmployees}
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
-          <strong>jobtypes:</strong> {request.jobTypes}
-        </Typography>
-        {tab === 1 && (
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            <strong>GST Number:</strong> {request.gstNumber}
-          </Typography>
-        )}
-        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleApprove(request.id)}
-            sx={{ textTransform: "none", fontWeight: "bold", px: 3, py: 1 }}
-          >
-            Approve
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => handleReject(request.id)}
-            sx={{ textTransform: "none", fontWeight: "bold", px: 3, py: 1 }}
-          >
-            Reject
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
-  ));
-
-return (
-  <div className="p-4">
-    <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)}>
-      <Tab label="Step 1 Verification" />
-      <Tab label="Document Verification" />
-    </Tabs>
-    {loading ? (
-      <CircularProgress />
-    ) : tab === 0 ? (
-      renderRequests(stepOneRequests)
-    ) : (
-      renderRequests(docRequests)
-    )}
-  </div>
-);
-// };
-
-// export default ContractorRequests;
+export default ManageAdmins;

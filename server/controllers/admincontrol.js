@@ -115,6 +115,7 @@ const blockAdmin = async (req, res) => {
 
     admin.isBlocked = true;
     await admin.save();
+    sendEmail(admin.email, "Account Blocked", "Your account has been blocked.");
 
     res.status(200).json({ msg: "Admin blocked successfully" });
   } catch (error) {
@@ -133,6 +134,7 @@ const unblockAdmin = async (req, res) => {
 
     admin.isBlocked = false;
     await admin.save();
+    sendEmail(admin.email, "Account Unblocked", "Your account has been unblocked.");
 
     res.json({ msg: "Admin unblocked successfully" });
   } catch (error) {
