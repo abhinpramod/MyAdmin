@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
 import {
-  Card,
-  CardContent,
+  Box,
+  Typography,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
   Button,
   CircularProgress,
-  Typography,
-  Grid,
-  Box,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  TextField,
+  IconButton,
 } from "@mui/material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
+import { Block, CheckCircle } from "@mui/icons-material";
 
 const AllContractors = () => {
   const [contractors, setContractors] = useState([]);
@@ -74,16 +80,22 @@ const AllContractors = () => {
       }
     } catch (error) {
       console.error("Error updating block status:", error);
-      toast.error(error.response?.data?.msg || "Failed to update block status.");
+      toast.error(
+        error.response?.data?.msg || "Failed to update block status."
+      );
     } finally {
       handleClose();
     }
   };
 
-  // Updated search functionality to filter contractors by multiple fields
   const filteredContractors = contractors.filter((contractor) =>
-    [contractor.companyName, contractor.contractorName, contractor.email, contractor.phone, contractor.gstNumber]
-      .some((field) => field?.toLowerCase().includes(searchTerm.toLowerCase()))
+    [
+      contractor.companyName,
+      contractor.contractorName,
+      contractor.email,
+      contractor.phone,
+      contractor.gstNumber,
+    ].some((field) => field?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -104,53 +116,68 @@ const AllContractors = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <Grid container spacing={3}>
-          {filteredContractors.map((contractor) => (
-            <Grid item xs={12} sm={6} md={4} key={contractor._id}>
-              <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ mb: 2 }}>
-                    {contractor.companyName}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Contractor: {contractor.contractorName}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Email: {contractor.email}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Phone: {contractor.phone}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Employees: {contractor.numberOfEmployees}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Job Types: {contractor.jobTypes.join(", ")}
-                  </Typography>
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    GST Number: {contractor.gstNumber}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    color={!contractor.isBlocked ? "error" : "success"}
-                    onClick={() =>
-                      handleConfirm(contractor._id, contractor.isBlocked)
-                    }
-                    sx={{ width: "100%", mt: 2 }}
-                  >
-                    {!contractor.isBlocked ? "Block" : "Unblock"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <b>Company Name</b>
+                </TableCell>
+                <TableCell>
+                  <b>Contractor</b>
+                </TableCell>
+                <TableCell>
+                  <b>Email</b>
+                </TableCell>
+                <TableCell>
+                  <b>Phone</b>
+                </TableCell>
+                <TableCell>
+                  <b>Employees</b>
+                </TableCell>
+                <TableCell>
+                  <b>Job Types</b>
+                </TableCell>
+                <TableCell>
+                  <b>GST Number</b>
+                </TableCell>
+                <TableCell>
+                  <b>Action</b>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredContractors.map((contractor) => (
+                <TableRow key={contractor._id}>
+                  <TableCell>{contractor.companyName}</TableCell>
+                  <TableCell>{contractor.contractorName}</TableCell>
+                  <TableCell>{contractor.email}</TableCell>
+                  <TableCell>{contractor.phone}</TableCell>
+                  <TableCell>{contractor.numberOfEmployees}</TableCell>
+                  <TableCell>{contractor.jobTypes.join(", ")}</TableCell>
+                  <TableCell>{contractor.gstNumber}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      variant="contained"
+                      color={!contractor.isBlocked ? "error" : "success"}
+                      onClick={() =>
+                        handleConfirm(contractor._id, contractor.isBlocked)
+                      }
+                    >
+                      {contractor.isBlocked ? <CheckCircle /> : <Block />}{" "}
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.open} onClose={handleClose}>
         <DialogTitle>
-          Confirm {confirmDialog.isBlocked ? "unblock" : "block"}{" "}
+          Confirm {confirmDialog.isBlocked ? "unblock" : "block"}
         </DialogTitle>
         <DialogContent>
           <DialogContentText>

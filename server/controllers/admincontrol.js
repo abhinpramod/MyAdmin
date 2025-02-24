@@ -60,7 +60,7 @@ const login = async (req, res) => {
     if (!admin) return res.status(400).json({ msg: "Invalid Email" });
 
     if (admin.isBlocked)
-      return res.status(403).json({ msg: "Admin is blocked" });
+      return res.status(403).json({ msg: "your account is blocked" });
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
@@ -124,6 +124,25 @@ const blockAdmin = async (req, res) => {
   }
 };
 
+const editAdmin = async (req, res) => {
+  const { adminId } = req.params;
+  const { fullname, email } = req.body;
+
+  try {
+    const admin = await Admin.findById(adminId);
+    if (!admin) return res.status(404).json({ msg: "Admin not found" });
+
+    admin.fullname = fullname;
+    admin.email = email;
+    await admin.save();
+
+    res.status(200).json({ msg: "Admin updated successfully" });
+  } catch (error) {
+    console.error("Error updating admin:", error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
 // Unblock an admin
 const unblockAdmin = async (req, res) => {
   const { adminId } = req.params;
@@ -162,4 +181,5 @@ module.exports = {
   logoutAdmin,
   blockAdmin,
   unblockAdmin,
+  editAdmin
 };

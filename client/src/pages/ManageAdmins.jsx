@@ -3,7 +3,6 @@ import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 import React from "react";
 import {
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -17,14 +16,20 @@ import {
   TableRow,
   Paper,
   CircularProgress,
+  Button,
+  Tooltip,
+  IconButton,
+
 } from "@mui/material";
 import { v4 as uuid } from "uuid";
+import { Edit, Block, CheckCircle } from "@mui/icons-material";
 
 const ManageAdmins = () => {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [openAddAdmin, setOpenAddAdmin] = useState(false);
+  const [openEditAdmin, setOpenEditAdmin] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
@@ -61,7 +66,7 @@ const ManageAdmins = () => {
     if (formData.password !== formData.confirmPassword)
       return toast.error("Passwords do not match");
 
-    const uniqueId = uuid().slice(2, 8); 
+    const uniqueId = uuid().slice(2, 8);
     const finalData = { ...formData, uniqueId };
 
     try {
@@ -69,12 +74,32 @@ const ManageAdmins = () => {
       if (res.status === 201) {
         toast.success("Admin added successfully!");
         setAdmins([...admins, res.data]);
-        setFormData({ fullname: "", email: "", password: "", confirmPassword: "", uniqueId: "", role: "" });
         setOpenAddAdmin(false);
+        resetForm();
       }
     } catch (error) {
       console.error("Error adding admin:", error);
       toast.error(error.response?.data?.msg || "Failed to add admin");
+    }
+  };
+
+  const handleEditAdmin = async () => {
+    if (!selectedAdmin) return;
+    try {
+      const res = await axiosInstance.patch(`/admin/edit-admin/${selectedAdmin._id}`, formData);
+      if (res.status === 200) {
+        toast.success("Admin details updated successfully!");
+        setAdmins(
+          admins.map((admin) =>
+            admin._id === selectedAdmin._id ? { ...admin, ...formData } : admin
+          )
+        );
+        setOpenEditAdmin(false);
+        resetForm();
+      }
+    } catch (error) {
+      console.error("Error updating admin:", error);
+      toast.error("Failed to update admin.");
     }
   };
 
@@ -83,10 +108,16 @@ const ManageAdmins = () => {
     setLoading(true);
     try {
       const updatedStatus = !selectedAdmin.isBlocked;
-      const endpoint = updatedStatus ? `/admin/block-admin/${selectedAdmin._id}` : `/admin/unblock-admin/${selectedAdmin._id}`;
+      const endpoint = updatedStatus
+        ? `/admin/block-admin/${selectedAdmin._id}`
+        : `/admin/unblock-admin/${selectedAdmin._id}`;
       await axiosInstance.patch(endpoint, { adminId: selectedAdmin._id });
       toast.success(`Admin ${updatedStatus ? "blocked" : "unblocked"} successfully`);
-      setAdmins(admins.map((admin) => (admin._id === selectedAdmin._id ? { ...admin, isBlocked: updatedStatus } : admin)));
+      setAdmins(
+        admins.map((admin) =>
+          admin._id === selectedAdmin._id ? { ...admin, isBlocked: updatedStatus } : admin
+        )
+      );
     } catch (error) {
       console.error(error);
       toast.error("Failed to update admin status.");
@@ -97,7 +128,11 @@ const ManageAdmins = () => {
     }
   };
 
-  const filteredAdmins = admins.filter(admin =>
+  const resetForm = () => {
+    setFormData({ fullname: "", email: "", password: "", confirmPassword: "", role: "" });
+  };
+
+  const filteredAdmins = admins.filter((admin) =>
     admin.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
     admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     admin.uniqueId.includes(searchTerm)
@@ -115,7 +150,9 @@ const ManageAdmins = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           style={{ marginRight: "8px" }}
         />
-        <Button variant="contained" color="primary" onClick={() => setOpenAddAdmin(true)}>Add Admin</Button>
+        <Button variant="contained" color="primary" onClick={() => setOpenAddAdmin(true)}>
+          Add Admin
+        </Button>
       </div>
 
       {loading ? (
@@ -140,17 +177,32 @@ const ManageAdmins = () => {
                   <TableCell>{admin.fullname}</TableCell>
                   <TableCell>{admin.email}</TableCell>
                   <TableCell>
-                    <Button
-                      onClick={() => {
-                        setSelectedAdmin(admin);
-                        setConfirmAction(admin.isBlocked ? "unblock" : "block");
-                      }}
-                      variant="contained"
-                      color={admin.isBlocked ? "success" : "warning"}
-                      style={{ marginRight: "8px" }}
-                    >
-                      {admin.isBlocked ? "Unblock" : "Block"}
-                    </Button>
+                    <Tooltip title="Edit">
+                      <IconButton
+                        onClick={() => {
+                          setSelectedAdmin(admin);
+                          setFormData(admin);
+                          setOpenEditAdmin(true);
+                        }}
+                        variant="contained"
+                        color="primary"
+                        style={{ marginRight: "8px" }}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={admin.isBlocked ? "Unblock" : "Block"}>
+                      <IconButton
+                        onClick={() => {
+                          setSelectedAdmin(admin);
+                          setConfirmAction(admin.isBlocked ? "unblock" : "block");
+                        }}
+                        variant="contained"
+                        color={admin.isBlocked ? "success" : "warning"}
+                      >
+                        {admin.isBlocked ? <CheckCircle /> : <Block />}
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
@@ -158,30 +210,39 @@ const ManageAdmins = () => {
           </Table>
         </TableContainer>
       )}
+       <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
+              <DialogTitle>
+                Are you sure you want to {confirmAction === "block" ? "block" : "unblock"} {selectedAdmin?.fullname}?
+              </DialogTitle>
+              <DialogActions>
+                <Button onClick={() => setConfirmAction(null)} color="secondary">Cancel</Button>
+                <Button onClick={handleBlockUnblockAdmin} color="primary">Confirm</Button>
+              </DialogActions>
+            </Dialog>
 
-      {/* Add Admin Dialog */}
-      <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
-        <DialogTitle>Add New Admin</DialogTitle>
+      {/* Edit Admin Dialog */}
+      <Dialog open={openEditAdmin} onClose={() => setOpenEditAdmin(false)}>
+        <DialogTitle>Edit Admin</DialogTitle>
         <DialogContent>
           <TextField label="Full Name" fullWidth margin="normal" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
           <TextField label="Email" fullWidth margin="normal" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
-          <TextField label="Password" type="password" fullWidth margin="normal" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
-          <TextField label="Confirm Password" type="password" fullWidth margin="normal" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditAdmin(false)} color="secondary">Cancel</Button>
+          <Button onClick={handleEditAdmin} color="primary">Save</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
+        <DialogTitle>Add Admin</DialogTitle>
+        <DialogContent>
+          <TextField label="Full Name" fullWidth margin="normal" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
+          <TextField label="Email" fullWidth margin="normal" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <TextField label="Password" fullWidth margin="normal" type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          <TextField label="Confirm Password" fullWidth margin="normal" type="password" value={formData.confirmPassword} onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenAddAdmin(false)} color="secondary">Cancel</Button>
           <Button onClick={handleAddAdmin} color="primary">Add</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Confirm Action Dialog */}
-      <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
-        <DialogTitle>
-          Are you sure you want to {confirmAction === "block" ? "block" : "unblock"} {selectedAdmin?.fullname}?
-        </DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setConfirmAction(null)} color="secondary">Cancel</Button>
-          <Button onClick={handleBlockUnblockAdmin} color="primary">Confirm</Button>
         </DialogActions>
       </Dialog>
     </div>

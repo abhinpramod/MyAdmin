@@ -7,7 +7,8 @@ const  {
   getalladmins,
   logoutAdmin,
   blockAdmin,
-  unblockAdmin
+  unblockAdmin,
+  editAdmin
 } =require( "../controllers/admincontrol")
 
 const { protectRoute } = require("../middleware/authmiddleware");
@@ -20,7 +21,5 @@ router.get("/get-all-admins", protectRoute, getalladmins);
 router.post("/logout",logoutAdmin)
 router.patch("/block-admin/:adminId", blockAdmin);
 router.patch("/unblock-admin/:adminId", unblockAdmin);
-
-
-
+router.patch('/edit-admin/:adminId',protectRoute,editAdmin)
 module.exports = router;
