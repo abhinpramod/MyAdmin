@@ -232,6 +232,7 @@ const ManageAdmins = () => {
           <Button onClick={handleEditAdmin} color="primary">Save</Button>
         </DialogActions>
       </Dialog>
+      
       <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
         <DialogTitle>Add Admin</DialogTitle>
         <DialogContent>

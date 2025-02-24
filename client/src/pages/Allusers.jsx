@@ -13,10 +13,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   TextField,
 } from "@mui/material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
+import {  Block, CheckCircle } from "@mui/icons-material";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -111,13 +113,13 @@ const AllUsers = () => {
                 <TableCell>{user.phone}</TableCell>
                 <TableCell>{user.isBlocked ? "Blocked" : "Active"}</TableCell>
                 <TableCell>
-                  <Button
+                  <IconButton
                     variant="contained"
                     color={user.isBlocked ? "success" : "error"}
                     onClick={() => handleOpenDialog(user)}
                   >
-                    {user.isBlocked ? "Unblock" : "Block"}
-                  </Button>
+                      {user.isBlocked ? <CheckCircle /> : <Block />}{" "}
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
