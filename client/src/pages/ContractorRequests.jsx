@@ -134,6 +134,9 @@ const ContractorRequests = () => {
           <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
             <strong>Job Types:</strong> {request.jobTypes.join(", ")}
           </Typography>
+          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+            <strong>location:</strong> {request.country}, {request.city}
+          </Typography>
           {tab === 1 && (
             <Typography variant="body1" sx={{ mb: 2, color: "#555" }}>
               <strong>GST Number:</strong> {request.gstNumber}

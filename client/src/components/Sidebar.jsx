@@ -1,17 +1,31 @@
 import { NavLink } from "react-router-dom";
-import { Store, Users, UserCheck } from "lucide-react";
+import { Store, Users, UserCheck, Menu, X } from "lucide-react";
 import React from "react";
 import { useSelector } from "react-redux";
 
-const Sidebar = () => {
+const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
   const { admin } = useSelector((state) => state.admin);
 
   if (!admin) return null; // Don't render sidebar if admin is null
 
   return (
-    <aside className="w-64 bg-gray-900 text-white h-screen fixed top-0 left-0 flex flex-col p-4">
-      <h2 className="text-xl font-bold text-red-500 mb-6">LocalFinder Admin</h2>
-      <nav className="space-y-4">
+    <aside
+      className={`bg-gray-900 text-white h-screen fixed top-0 left-0 flex flex-col p-4 transition-all duration-300 ${
+        isSidebarOpen ? "w-64" : "w-20"
+      }`}
+    >
+      {/* Toggle Button */}
+      <button
+        onClick={onToggleSidebar}
+        className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 focus:outline-none self-end"
+      >
+        {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+     
+
+      {/* Navigation Links */}
+      <nav className="space-y-4 mt-4">
         <NavLink
           to="allusers"
           className={({ isActive }) =>
@@ -20,7 +34,8 @@ const Sidebar = () => {
             }`
           }
         >
-          <Store className="w-5 h-5 mr-3" /> All Users
+          <Store className="w-5 h-5" />
+          <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>All Users</span>
         </NavLink>
         <NavLink
           to="contractors"
@@ -30,7 +45,8 @@ const Sidebar = () => {
             }`
           }
         >
-          <Users className="w-5 h-5 mr-3" /> All Contractors
+          <Users className="w-5 h-5" />
+          <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>All Contractors</span>
         </NavLink>
         <NavLink
           to="stores"
@@ -40,7 +56,8 @@ const Sidebar = () => {
             }`
           }
         >
-          <Store className="w-5 h-5 mr-3" /> All Stores
+          <Store className="w-5 h-5" />
+          <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>All Stores</span>
         </NavLink>
         <NavLink
           to="store-requests"
@@ -50,7 +67,8 @@ const Sidebar = () => {
             }`
           }
         >
-          <Store className="w-5 h-5 mr-3" /> Store Requests
+          <Store className="w-5 h-5" />
+          <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Store Requests</span>
         </NavLink>
         <NavLink
           to="contractor-requests"
@@ -60,7 +78,8 @@ const Sidebar = () => {
             }`
           }
         >
-          <Users className="w-5 h-5 mr-3" /> Contractor Requests
+          <Users className="w-5 h-5" />
+          <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Contractor Requests</span>
         </NavLink>
 
         {/* Show Manage Admins only if admin is superadmin */}
@@ -73,7 +92,8 @@ const Sidebar = () => {
               }`
             }
           >
-            <UserCheck className="w-5 h-5 mr-3" /> Manage Admins
+            <UserCheck className="w-5 h-5" />
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Manage Admins</span>
           </NavLink>
         )}
       </nav>

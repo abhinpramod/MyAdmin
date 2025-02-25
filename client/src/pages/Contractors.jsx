@@ -127,7 +127,7 @@ const AllContractors = () => {
                   <b>Contractor</b>
                 </TableCell>
                 <TableCell>
-                  <b>Email</b>
+                  <b>location</b>
                 </TableCell>
                 <TableCell>
                   <b>Phone</b>
@@ -138,9 +138,9 @@ const AllContractors = () => {
                 <TableCell>
                   <b>Job Types</b>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <b>GST Number</b>
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <b>Action</b>
                 </TableCell>
@@ -151,11 +151,14 @@ const AllContractors = () => {
                 <TableRow key={contractor._id}>
                   <TableCell>{contractor.companyName}</TableCell>
                   <TableCell>{contractor.contractorName}</TableCell>
-                  <TableCell>{contractor.email}</TableCell>
+                  <TableCell>{contractor.city} <br />
+                    {contractor.state},
+                    <br />
+                    {contractor.country}</TableCell>
                   <TableCell>{contractor.phone}</TableCell>
                   <TableCell>{contractor.numberOfEmployees}</TableCell>
                   <TableCell>{contractor.jobTypes.join(", ")}</TableCell>
-                  <TableCell>{contractor.gstNumber}</TableCell>
+                  {/* <TableCell>{contractor.gstNumber}</TableCell> */}
                   <TableCell>
                     <IconButton
                       variant="contained"

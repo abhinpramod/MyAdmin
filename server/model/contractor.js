@@ -21,6 +21,11 @@ const contractorSchema = new mongoose.Schema(
     licenseDocument: { type: String },
     registrationStep: { type: Number, enum: [1, 2], default: 1 },
     verified: { type: Boolean, default: false },
+    country: { type: String },
+    state: { type: String },
+    city: { type: String },
+    address: { type: String },
+    uniqueId: { type: String, unique: true },
   },
   { timestamps: true }
 );

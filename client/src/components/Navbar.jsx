@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 
-const Navbar = () => {
+const Navbar = ({ isSidebarOpen }) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -41,7 +41,12 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="bg-white shadow-md w-full top-0 left-64 h-16 flex items-center px-6 justify-between z-40">
+      {/* Navbar */}
+      <header
+        className={`bg-white shadow-md w-full fixed top-0 h-16 flex items-center px-6 justify-between z-50 transition-all duration-300 ${
+          isSidebarOpen ? "left-64" : "left-20"
+        }`}
+      >
         {/* Title */}
         <h1 className="text-lg font-semibold text-gray-800">Admin Dashboard</h1>
 
@@ -54,7 +59,7 @@ const Navbar = () => {
       </header>
 
       {/* Logout Confirmation Dialog */}
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} style={{ zIndex: 9999 }}>
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>
           <DialogContentText>
