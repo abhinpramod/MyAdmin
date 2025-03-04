@@ -18,7 +18,6 @@ import Contractors from "./pages/Contractors";
 import StoreRequests from "./pages/StoreRequests";
 import ContractorRequests from "./pages/ContractorRequests";
 import Allusers from "./pages/Allusers";
-// import AddAdmin from "./pages/AddAdmin";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";
 
@@ -43,10 +42,9 @@ function App() {
         setLoading(false);
       }
     };
-  
+
     checkAuth();
-  }, [dispatch]); // Keep dependencies minimal to avoid unnecessary re-renders
-  
+  }, [dispatch]);
 
   // Show loader while checking authentication
   if (loading) {
@@ -81,7 +79,7 @@ function App() {
               path="contractor-requests"
               element={<ContractorRequests />}
             />
-            <Route path="allusers" element={< Allusers  />} />
+            <Route path="allusers" element={<Allusers />} />
             <Route
               path="manage-admins"
               element={

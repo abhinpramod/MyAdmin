@@ -1,43 +1,17 @@
 import { useState } from "react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import axiosInstance from "../lib/aixos";
-import { logoutAdmin } from "../redux/adminSlice";
-import { toast } from "react-hot-toast";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from "@mui/material";
 
-const Navbar = ({ isSidebarOpen }) => {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
 
+import { Menu, X } from "lucide-react";
+
+const Navbar = ({ isSidebarOpen, onToggleSidebar }) => {
+  
   // Handle logout confirmation dialog
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  
 
   // Handle logout action
-  const handleLogout = async () => {
-    try {
-      await axiosInstance.post("/admin/logout");
-
-      dispatch(logoutAdmin());
-      navigate("/");
-      toast.success("Logged out successfully");
-    } catch (error) {
-      console.error("Logout failed:", error);
-      toast.error("Failed to log out");
-    } finally {
-      handleClose(); // Close the dialog after logout attempt
-    }
-  };
+ 
 
   return (
     <>
@@ -47,34 +21,24 @@ const Navbar = ({ isSidebarOpen }) => {
           isSidebarOpen ? "left-64" : "left-20"
         }`}
       >
+        {/* Toggle Button for Mobile */}
+        <button
+          onClick={onToggleSidebar}
+          className="md:hidden p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 focus:outline-none"
+        >
+          {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+
         {/* Title */}
         <h1 className="text-lg font-semibold text-gray-800">Admin Dashboard</h1>
 
         {/* Right Side: Logout Button */}
-        <div className="flex items-center space-x-4">
-          <Button variant="outlined" color="error" onClick={handleOpen}>
-            Logout
-          </Button>
-        </div>
+       
+      
       </header>
 
       {/* Logout Confirmation Dialog */}
-      <Dialog open={open} onClose={handleClose} style={{ zIndex: 9999 }}>
-        <DialogTitle>Confirm Logout</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to log out?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleLogout} color="error" variant="contained">
-            Logout
-          </Button>
-        </DialogActions>
-      </Dialog>
+      
     </>
   );
 };

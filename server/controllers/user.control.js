@@ -25,22 +25,28 @@ const toggleBlockStatus = async (req, res) => {
     const userName = updatedUser.fullname;
     const email = updatedUser.email;
     const subject = `Account ${isBlocked ? "blocked" : "unblocked"}`;
-    const text = `Hello ${userName},\n\nYour account has been ${isBlocked ? "blocked" : "unblocked"}.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+    const text = `Hello ${userName},\n\nYour account has been ${
+      isBlocked ? "blocked" : "unblocked"
+    }.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
 
     sendEmail(email, subject, text);
 
     if (!updatedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
-    res.status(200).json({ success: true, message: "User status updated", user: updatedUser });
+    res.status(200).json({
+      success: true,
+      message: "User status updated",
+      user: updatedUser,
+    });
   } catch (error) {
     console.error("Error updating user block status:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
 
 module.exports = {
   allusers,

@@ -18,7 +18,7 @@ const Layout = () => {
       {/* Main Section */}
       <div className="flex flex-col flex-1">
         {/* Sticky Navbar */}
-        <Navbar isSidebarOpen={isSidebarOpen} />
+        <Navbar isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
 
         {/* Dynamic Page Content */}
         <main

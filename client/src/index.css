@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+@media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      left: -100%;
+      transition: left 0.3s ease;
+    }
+  
+    .sidebar.open {
+      left: 0;
+    }
+  
+    .main-content {
+      margin-left: 0 !important;
+    }
+  
+    .navbar {
+      left: 0 !important;
+    }
+  }

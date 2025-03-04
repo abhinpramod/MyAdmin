@@ -14,9 +14,13 @@ import {
   DialogContentText,
   DialogTitle,
   TextField,
+  Modal,
+  Grid,
+  IconButton, // Import Grid for layout
 } from "@mui/material";
 import toast from "react-hot-toast";
 import axiosInstance from "../lib/aixos";
+import { X}from "lucide-react";
 
 const ContractorRequests = () => {
   const [tab, setTab] = useState(0);
@@ -30,6 +34,10 @@ const ContractorRequests = () => {
     action: null,
     contractorId: null,
   });
+  const [imageModal, setImageModal] = useState({
+    open: false,
+    src: "",
+  });
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -37,15 +45,14 @@ const ContractorRequests = () => {
       const endpoint =
         tab === 0
           ? "/contractor/requests/step-one"
-          : "/contractor/requests/documents";
+          : "/contractor/requests/step-two";
       const response = await axiosInstance.get(endpoint);
       if (tab === 0) {
         setStepOneRequests(response.data || []);
-        setFilteredRequests(response.data || []);
       } else {
         setDocRequests(response.data || []);
-        setFilteredRequests(response.data || []);
       }
+      setFilteredRequests(response.data || []);
     } catch (error) {
       console.error("Error fetching requests:", error);
       toast.error(error.response?.data?.msg || "Failed to fetch requests");
@@ -59,12 +66,11 @@ const ContractorRequests = () => {
   }, [tab]);
 
   useEffect(() => {
-    const filtered = (tab === 0 ? stepOneRequests : docRequests).filter(
+    const requests = tab === 0 ? stepOneRequests : docRequests;
+    const filtered = requests.filter(
       (request) =>
         request.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.contractorName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
+        request.contractorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         request.phone.includes(searchTerm)
     );
@@ -81,9 +87,13 @@ const ContractorRequests = () => {
 
     try {
       const endpoint =
-        action === "approve"
-          ? `/contractor/requests/approve/${contractorId}`
-          : `/contractor/requests/reject/${contractorId}`;
+        tab === 0
+          ? action === "approve"
+            ? `/contractor/requests/step-one/approve/${contractorId}`
+            : `/contractor/requests/step-one/reject/${contractorId}`
+          : action === "approve"
+          ? `/contractor/requests/step-two/approve/${contractorId}`
+          : `/contractor/requests/step-two/reject/${contractorId}`;
 
       await axiosInstance.patch(endpoint);
       toast.success(`Request ${action}d successfully!`);
@@ -96,6 +106,10 @@ const ContractorRequests = () => {
     }
   };
 
+  const handleImageClick = (src) => {
+    setImageModal({ open: true, src });
+  };
+
   const renderRequests = (requests) =>
     requests.map((request) => (
       <Card
@@ -105,74 +119,102 @@ const ContractorRequests = () => {
           p: 2,
           boxShadow: 3,
           borderRadius: 2,
-          // transition: "transform 0.2s",
-
-          // "&:hover": { transform: "scale(1.02)" },
           backgroundColor: "#f9f9f9",
         }}
       >
-        <CardContent>
-          <Typography
-            variant="h5"
-            component="h2"
-            sx={{ fontWeight: "bold", mb: 2, color: "#333" }}
-          >
-            {request.companyName}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
-            <strong>Contractor:</strong> {request.contractorName}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
-            <strong>Email:</strong> {request.email}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
-            <strong>Phone:</strong> {request.phone}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
-            <strong>Number of Employees:</strong> {request.numberOfEmployees}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
-            <strong>Job Types:</strong> {request.jobTypes.join(", ")}
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
-            <strong>location:</strong> {request.country}, {request.city}
-          </Typography>
+        <Grid container spacing={2}>
+          {/* Left Side: Request Details */}
+          <Grid item xs={12} md={7}>
+            <CardContent>
+              <Typography variant="h5" component="h2" sx={{ fontWeight: "bold", mb: 2, color: "#333" }}>
+                {request.companyName}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+                <strong>Contractor:</strong> {request.contractorName}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+                <strong>Email:</strong> {request.email}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+                <strong>Phone:</strong> {request.phone}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+                <strong>Number of Employees:</strong> {request.numberOfEmployees}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+                <strong>Job Types:</strong> {request.jobTypes.join(", ")}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
+                <strong>Location:</strong> {request.country}, {request.state}, {request.city}
+              </Typography>
+              {tab === 1 && (
+                <Typography variant="body1" sx={{ mb: 2, color: "#555" }}>
+                  <strong>GST Number:</strong> {request.gstNumber}
+                </Typography>
+              )}
+              <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleConfirm("approve", request._id)}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    px: 3,
+                    py: 1,
+                    borderRadius: 1,
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => handleConfirm("reject", request._id)}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    px: 3,
+                    py: 1,
+                    borderRadius: 1,
+                  }}
+                >
+                  Reject
+                </Button>
+              </Box>
+            </CardContent>
+          </Grid>
+
+          {/* Right Side: Document Images */}
           {tab === 1 && (
-            <Typography variant="body1" sx={{ mb: 2, color: "#555" }}>
-              <strong>GST Number:</strong> {request.gstNumber}
-            </Typography>
+            <Grid item xs={12} md={5}>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: 6 }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
+                    License Document:
+                  </Typography>
+                  <img
+                    src={request.licenseDocument}
+                    alt="License Document"
+                    style={{ width: "300px",height: "200px", borderRadius: "8px", cursor: "pointer" }}
+                    onClick={() => handleImageClick(request.licenseDocument)}
+                  />
+                </Box>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: "bold", mb: 1 }}>
+                    GST Document:
+                  </Typography>
+                  <img
+                    src={request.gstDocument}
+                    alt="GST Document"
+                    style={{ width: "300px", height: "200px", borderRadius: "8px", cursor: "pointer" }}
+                    onClick={() => handleImageClick(request.gstDocument)}
+                  />
+                </Box>
+              </Box>
+            </Grid>
           )}
-          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleConfirm("approve", request._id)}
-              sx={{
-                textTransform: "none",
-                fontWeight: "bold",
-                px: 3,
-                py: 1,
-                borderRadius: 1,
-              }}
-            >
-              Approve
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => handleConfirm("reject", request._id)}
-              sx={{
-                textTransform: "none",
-                fontWeight: "bold",
-                px: 3,
-                py: 1,
-                borderRadius: 1,
-              }}
-            >
-              Reject
-            </Button>
-          </Box>
-        </CardContent>
+        </Grid>
       </Card>
     ));
 
@@ -254,6 +296,33 @@ const ContractorRequests = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Image Enlargement Modal */}
+      <Modal
+        open={imageModal.open}
+        onClose={() => setImageModal({ open: false, src: "" })}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box sx={{ outline: "none" }}>
+          <img
+            src={imageModal.src}
+            alt="Enlarged Document"
+            style={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: "8px" }}
+          />
+          <IconButton
+            onClick={() => setImageModal({ open: false, src: "" })}
+            sx={{ mt: 2, display: "block", mx: "auto" }}
+            variant="contained"
+            color=""
+          >
+          <X />
+          </IconButton>
+        </Box>
+      </Modal>
     </div>
   );
 };

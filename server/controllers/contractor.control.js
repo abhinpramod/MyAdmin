@@ -14,7 +14,26 @@ const requeststepone = async (req, res) => {
     res.status(500).json({ msg: error.message });
   }
 };
-const requestreject = async (req, res) => {
+
+const requeststeptwo = async (req, res) => {
+  // const id="67af1799edfae8503a16185d"
+  try {
+    console.log("requeststeptwo");
+    const data = await contractor.find(
+      {
+        registrationStep: 2,
+        approvalStatus: 'pending',
+        verified: false
+      }
+    );
+  console.log(data);
+    res.status(200).json(data);
+  } catch (error) {
+    console.log("error from requeststeptwo", error.message);
+    res.status(500).json({ msg: error.message });
+  }
+}
+const requestreject1st = async (req, res) => {
   try {
     console.log("requestreject");
     const { id } = req.params;
@@ -37,7 +56,7 @@ const requestreject = async (req, res) => {
   }
 };
 
-const requestapprove = async (req, res) => {
+const requestapprove1st = async (req, res) => {
   try {
     console.log("requestapprove");
     const { id } = req.params;
@@ -60,7 +79,7 @@ const requestapprove = async (req, res) => {
 const allcontractors = async (req, res) => {
   try {
     console.log("AllContractors");
-    const data = await contractor.find({ approvalStatus: "Approved" });
+    const data = await contractor.find({verified: true});
     res.status(200).json(data);
   } catch (error) {
     console.log("error from AllContractors :", error.message);
@@ -103,12 +122,54 @@ const unblockcontractor = async (req, res) => {
     res.status(500).json({ msg: error.message });
   }
 };
+const requestapprove2nd = async (req, res) => {
+  try {
+    console.log("requestapprove2nd");
+    const { id } = req.params;
+    const data = await contractor.findByIdAndUpdate(id, {
+      approvalStatus: "Approved",
+      verified: true,
+    });
+    res.status(200).json(data);
+    const contractorName = data.contractorName;
+    const email = data.email;
+    const subject = "dociment verified";
+    const text = `Hello ${contractorName},\n\nYour account has been verified. your can now login to your account and start working as a contractor.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
 
+    sendEmail(email, subject, text);
+
+  } catch (error) {
+    console.log("error from requestapprove2nd :", error.message);
+    res.status(500).json({ msg: error.message });
+  }
+};
+const requestreject2nd = async (req, res) => {
+  try {
+    console.log("requestreject2nd");
+    const { id } = req.params;
+    const data = await contractor.findByIdAndUpdate(id, {
+      approvalStatus: "Rejected",
+    });
+    res.status(200).json(data);
+    const contractorName = data.contractorName;
+    const email = data.email;
+    const subject = " document verification rejected";
+    const text = `Hello ${contractorName},\n\nYour account verification has been rejected.\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
+
+    sendEmail(email, subject, text);
+  } catch (error) {
+    console.log("error from requestreject2nd :", error.message);
+    res.status(500).json({ msg: error.message });
+  }
+}
 module.exports = {
   requeststepone,
-  requestreject,
-  requestapprove,
+  requestreject1st,
+  requestapprove1st,
   allcontractors,
   blockcontractor,
   unblockcontractor,
+  requeststeptwo,
+  requestreject2nd,
+  requestapprove2nd
 };
