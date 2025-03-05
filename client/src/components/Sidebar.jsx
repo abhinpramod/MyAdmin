@@ -3,7 +3,7 @@ import { Store, Users, UserCheck, Menu, X, LogOut } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axiosInstance from "../lib/aixos";
-import { logoutAdmin , loginAdmin} from "../redux/adminSlice";
+import { logoutAdmin, loginAdmin } from "../redux/adminSlice";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -41,7 +41,6 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
     checkAuth();
   }, [dispatch]);
 
-
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -73,7 +72,11 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
           onClick={onToggleSidebar}
           className="p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 focus:outline-none self-end"
         >
-          {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {isSidebarOpen ? (
+            <X className="w-5 h-5" />
+          ) : (
+            <Menu className="w-5 h-5" />
+          )}
         </button>
 
         {/* Navigation Links */}
@@ -87,7 +90,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             }
           >
             <Store className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>All Users</span>
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              All Users
+            </span>
           </NavLink>
           <NavLink
             to="contractors"
@@ -98,7 +103,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             }
           >
             <Users className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>All Contractors</span>
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              All Contractors
+            </span>
           </NavLink>
           <NavLink
             to="stores"
@@ -109,7 +116,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             }
           >
             <Store className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>All Stores</span>
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              All Stores
+            </span>
           </NavLink>
           <NavLink
             to="store-requests"
@@ -120,7 +129,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             }
           >
             <Store className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Store Requests</span>
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              Store Requests
+            </span>
           </NavLink>
           <NavLink
             to="contractor-requests"
@@ -131,7 +142,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             }
           >
             <Users className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Contractor Requests</span>
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              Contractor Requests
+            </span>
           </NavLink>
 
           {/* Show Manage Admins only if admin is superadmin */}
@@ -145,7 +158,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
               }
             >
               <UserCheck className="w-5 h-5" />
-              <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Manage Admins</span>
+              <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+                Manage Admins
+              </span>
             </NavLink>
           )}
         </nav>
@@ -159,7 +174,9 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             }`}
           >
             <LogOut className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>Logout</span>
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              Logout
+            </span>
           </button>
         </div>
       </aside>
