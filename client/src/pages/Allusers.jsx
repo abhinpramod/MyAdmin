@@ -98,11 +98,21 @@ const AllUsers = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong>Name</strong></TableCell>
-              <TableCell><strong>Email</strong></TableCell>
-              <TableCell><strong>Phone</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-              <TableCell><strong>Action</strong></TableCell>
+              <TableCell>
+                <strong>Name</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Email</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Phone</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Status</strong>
+              </TableCell>
+              <TableCell>
+                <strong>Action</strong>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -149,14 +159,19 @@ const AllUsers = () => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to {selectedUser?.isBlocked ? "unblock" : "block"} this user?
+            Are you sure you want to{" "}
+            {selectedUser?.isBlocked ? "unblock" : "block"} this user?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">
             Cancel
           </Button>
-          <Button onClick={handleConfirmAction} color="primary" variant="contained">
+          <Button
+            onClick={handleConfirmAction}
+            color="primary"
+            variant="contained"
+          >
             Confirm
           </Button>
         </DialogActions>
