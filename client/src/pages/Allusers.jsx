@@ -19,6 +19,7 @@ import {
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 import { Block, CheckCircle } from "@mui/icons-material";
+import { ServerCog } from "lucide-react";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -116,6 +117,11 @@ const AllUsers = () => {
             </TableRow>
           </TableHead>
           <TableBody>
+            {filteredUsers.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center">No users match for <strong>{searchTerm}</strong> </TableCell>
+              </TableRow>
+            )}
             {filteredUsers.map((user) => (
               <TableRow key={user._id}>
                 <TableCell>{user.name}</TableCell>

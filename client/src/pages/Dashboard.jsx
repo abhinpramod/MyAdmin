@@ -19,12 +19,12 @@ const tableData = [
   { id: 1, name: 'John Doe', age: 28, city: 'New York' },
   { id: 2, name: 'Jane Smith', age: 34, city: 'Los Angeles' },
   { id: 3, name: 'Sam Green', age: 45, city: 'Chicago' },
-  { id: 1, name: 'John Doe', age: 28, city: 'New York' },
-  { id: 2, name: 'Jane Smith', age: 34, city: 'Los Angeles' },
-  { id: 3, name: 'Sam Green', age: 45, city: 'Chicago' },
-  { id: 1, name: 'John Doe', age: 28, city: 'New York' },
-  { id: 2, name: 'Jane Smith', age: 34, city: 'Los Angeles' },
-  { id: 3, name: 'Sam Green', age: 45, city: 'Chicago' },
+  { id:4,name: 'John Doe', age: 28, city: 'New York' },
+  { id: 5,name: 'Jane Smith', age: 34, city: 'Los Angeles' },
+  { id: 6,name: 'Sam Green', age: 45, city: 'Chicago' },
+  { id: 7, name: 'John Doe', age: 28, city: 'New York' },
+  { id: 8, name: 'Jane Smith', age: 34, city: 'Los Angeles' },
+  { id: 9, name: 'Sam Green', age: 45, city: 'Chicago' },
 ];
 
 const Dashboard = () => {

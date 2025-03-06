@@ -171,6 +171,11 @@ const ManageAdmins = () => {
               </TableRow>
             </TableHead>
             <TableBody>
+               {filteredAdmins.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={5} align="center">No admin match for <strong>{searchTerm}</strong> </TableCell>
+                            </TableRow>
+                          )}
               {filteredAdmins.map((admin) => (
                 <TableRow key={admin._id}>
                   <TableCell>{admin.uniqueId}</TableCell>

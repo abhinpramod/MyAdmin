@@ -29,10 +29,12 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
           dispatch(loginAdmin(res.data));
         } else {
           dispatch(logoutAdmin());
+          navigate("/");
         }
       } catch (error) {
         console.error("Authentication error:", error);
         dispatch(logoutAdmin());
+        navigate("/");
       } finally {
         // setLoading(false);
       }

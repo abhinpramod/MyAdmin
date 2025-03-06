@@ -147,11 +147,16 @@ const AllContractors = () => {
               </TableRow>
             </TableHead>
             <TableBody>
+               {filteredContractors.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={5} align="center">No contractor match for <strong>{searchTerm}</strong> </TableCell>
+                            </TableRow>
+                          )}
               {filteredContractors.map((contractor) => (
                 <TableRow key={contractor._id}>
                   <TableCell>{contractor.companyName}</TableCell>
                   <TableCell>{contractor.contractorName}</TableCell>
-                  <TableCell>{contractor.city} <br />
+                  <TableCell>{contractor.city }<br />
                     {contractor.state},
                     <br />
                     {contractor.country}</TableCell>

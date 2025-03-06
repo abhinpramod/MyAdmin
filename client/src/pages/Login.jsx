@@ -50,7 +50,7 @@ const Login = () => {
       dispatch(loginAdmin({ admin: res.data })); // Store in Redux
       console.log(res.data);
 
-      navigate("/admin");
+      navigate("/admin/dashboard");
     } catch (error) {
       console.log(error);
       toast.error(error.response?.data?.msg || "Login failed");
