@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Store, Users, UserCheck, Menu, X, LogOut } from "lucide-react";
+import { Store, Users, UserCheck, Menu, X, LogOut,LayoutDashboard } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axiosInstance from "../lib/aixos";
@@ -81,6 +81,18 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
 
         {/* Navigation Links */}
         <nav className="space-y-4 mt-4 flex-1">
+          <NavLink
+            to="dashboard"
+            className={({ isActive }) =>
+              `flex items-center p-3 rounded-lg transition-colors ${
+                isActive ? "bg-gray-800" : "hover:bg-gray-800"
+              }`
+            }
+          >
+<LayoutDashboard/>            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              Dashboard
+            </span>
+          </NavLink>
           <NavLink
             to="allusers"
             className={({ isActive }) =>

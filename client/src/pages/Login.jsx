@@ -27,7 +27,7 @@ const Login = () => {
       toast.error("Email is required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
-      toast.error("Invalid email format");
+      toast.error("Invalid email format ye");
     }
 
     if (!formData.password) {

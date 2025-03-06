@@ -164,10 +164,10 @@ const ManageAdmins = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell> <strong>ID</strong></TableCell>
+                <TableCell><strong>Name</strong></TableCell>
+                <TableCell><strong>Email</strong></TableCell>
+                <TableCell> <strong >Actions</strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

@@ -20,7 +20,7 @@ import ContractorRequests from "./pages/ContractorRequests";
 import Allusers from "./pages/Allusers";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";
-
+import Dashboard from "./pages/Dashboard";
 function App() {
   const dispatch = useDispatch();
   const { admin } = useSelector((state) => state.admin);
@@ -80,6 +80,7 @@ function App() {
               element={<ContractorRequests />}
             />
             <Route path="allusers" element={<Allusers />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route
               path="manage-admins"
               element={

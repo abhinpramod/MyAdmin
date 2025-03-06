@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
-import {  Block, CheckCircle } from "@mui/icons-material";
+import { Block, CheckCircle } from "@mui/icons-material";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -98,11 +98,11 @@ const AllUsers = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell><strong>Name</strong></TableCell>
+              <TableCell><strong>Email</strong></TableCell>
+              <TableCell><strong>Phone</strong></TableCell>
+              <TableCell><strong>Status</strong></TableCell>
+              <TableCell><strong>Action</strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -110,15 +110,30 @@ const AllUsers = () => {
               <TableRow key={user._id}>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>{user.phone}</TableCell>
-                <TableCell>{user.isBlocked ? "Blocked" : "Active"}</TableCell>
+                <TableCell>{user.phone || "N/A"}</TableCell>
+                {/* Updated Status Cell with Smaller Background */}
+                <TableCell>
+                  <span
+                    style={{
+                      backgroundColor: user.isBlocked ? "#EF4444" : "#22C55E",
+                      color: "white",
+                      fontWeight: "bold",
+                      borderRadius: "4px",
+                      padding: "4px 8px", // Reduced padding
+                      display: "inline-block", // Prevents stretching
+                      fontSize: "12px", // Slightly smaller text
+                    }}
+                  >
+                    {user.isBlocked ? "Blocked" : "Active"}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <IconButton
                     variant="contained"
                     color={user.isBlocked ? "success" : "error"}
                     onClick={() => handleOpenDialog(user)}
                   >
-                      {user.isBlocked ? <CheckCircle /> : <Block />}{" "}
+                    {user.isBlocked ? <CheckCircle /> : <Block />}
                   </IconButton>
                 </TableCell>
               </TableRow>
