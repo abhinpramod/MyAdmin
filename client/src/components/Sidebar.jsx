@@ -29,6 +29,7 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
           dispatch(loginAdmin(res.data));
         } else {
           dispatch(logoutAdmin());
+          console.log("Not authenticated");
           navigate("/");
         }
       } catch (error) {
