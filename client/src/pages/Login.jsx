@@ -1,10 +1,9 @@
-import { useState } from "react";
-// import { Link } from "react-router-dom";
-import React from "react";
+import React, { useState } from "react";
+import { TextField, Button, Typography, Container, Paper, Box, Grid, Link } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axiosInstance from "../lib/aixos";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { loginAdmin } from "../redux/adminSlice";
 
 const Login = () => {
@@ -12,35 +11,21 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-  });
-  const navigate = useNavigate();
+
+  const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const validateForm = () => {
-    let newErrors = {};
+    let tempErrors = {};
+    if (!formData.email){tempErrors.email = "Email is required"}else{
+      tempErrors.email = /.+@.+\..+/.test(formData.email) ? "" : "Invalid email format";
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-      toast.error("Email is required");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-      toast.error("Invalid email format ye");
     }
+    tempErrors.password = formData.password ? "" : "Password is required";
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-      toast.error("Password is required");
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      toast.error("Password must be at least 6 characters");
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
+    setErrors(tempErrors);
+    return Object.values(tempErrors).every((x) => x === "");
   };
 
   const login = async (data) => {
@@ -64,52 +49,61 @@ const Login = () => {
     }
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-xl rounded-2xl p-8 max-w-sm w-full">
-        <h2 className="text-3xl font-bold text-red-600 text-center mb-6">
-          Admin Login
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-2 border rounded-lg"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-            />
-          </div>
+    <Container maxWidth="lg">
+      <Paper elevation={3} sx={{ padding: 10, marginTop: 15 }}>
+        <Grid container spacing={2}>
+          {/* Left Side Image (Only visible on large screens) */}
+          <Grid item xs={12} md={6} sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", justifyContent: "center" }}>
+            <img src="/abstract-lines.svg" alt="image" style={{ maxWidth: "80%" }} />
+          </Grid>
 
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              className="w-full px-4 py-2 border rounded-lg"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700"
-          >
-            Login
-          </button>
-        </form>
-      </div>
-    </div>
+          {/* Right Side Form */}
+          <Grid item xs={12} md={6}>
+            <Typography variant="h4" align="center" gutterBottom>
+              Admin Login
+            </Typography>
+            <form onSubmit={handleSubmit}>
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Password"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                error={!!errors.password}
+                helperText={errors.password}
+                margin="normal"
+              />
+              <Box textAlign="center" marginTop={2}>
+                <Button type="submit" variant="contained" color="primary" fullWidth>
+                  Login
+                </Button>
+              </Box>
+              <Box textAlign="center" marginTop={2}>
+                <Typography variant="body2">
+                  Don't have an account? <Link href="/admin/register">Sign up</Link>
+                </Typography>
+              </Box>
+            </form>
+          </Grid>
+        </Grid>
+      </Paper>
+    </Container>
   );
 };
 

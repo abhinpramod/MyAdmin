@@ -11,6 +11,7 @@ import { Loader } from "lucide-react";
 import axiosInstance from "./lib/aixos";
 import { loginAdmin, logoutAdmin } from "./redux/adminSlice";
 
+
 // Components & Pages
 import Layout from "./components/Layout";
 import Stores from "./pages/Stores";
@@ -38,6 +39,7 @@ function App() {
       } catch (error) {
         console.error("Authentication error:", error);
         dispatch(logoutAdmin());
+          Navigate("/");
       } finally {
         setLoading(false);
       }

@@ -6,7 +6,7 @@ const requeststepone = async (req, res) => {
     console.log("requeststepone");
 
     const data = await contractor.find(
-      { registrationStep: 1 } && { approvalStatus: "Pending" }
+      { registrationStep: 1 , approvalStatus: "Pending" }
     );
     res.status(200).json(data);
   } catch (error) {
@@ -22,7 +22,7 @@ const requeststeptwo = async (req, res) => {
     const data = await contractor.find(
       {
         registrationStep: 2,
-        approvalStatus: 'pending',
+        approvalStatus: 'Pending',
         verified: false
       }
     );
