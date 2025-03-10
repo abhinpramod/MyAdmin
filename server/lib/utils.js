@@ -6,7 +6,7 @@ const  jwt =require("jsonwebtoken")
     expiresIn: "7d",
   });
 
-  res.cookie("jwt", token, {
+  res.cookie("jwta", token, {
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
     secure: process.env.NODE_ENV !== "development",
