@@ -64,7 +64,8 @@ const login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
-
+   console.log("admin id login ",admin._id);
+   
     generateToken(admin._id, res);
     res.status(200).json({
       _id: admin._id,
@@ -73,6 +74,7 @@ const login = async (req, res) => {
       role: admin.role,
       uniqueId: admin.uniqueId,
     });
+    
   } catch (error) {
     console.error("Login error:", error.message);
     res.status(500).json({ msg: "Internal server error" });

@@ -17,7 +17,10 @@ const protectRoute = async (req, res, next) => {
     if (!decoded) {
       return res.status(401).json({ msg: "Unauthorized" });
     }
+    console.log( "hea",decoded.adminId);
+    
     const admin = await Admin.findById(decoded.adminId);
+    console.log("admin",admin);
     if (admin.isBlocked) {
     return res.status(401).json({ msg: "your account is blocked conect with superadmin" });
     
