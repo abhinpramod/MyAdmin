@@ -1,5 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { Store, Users, UserCheck, Menu, X, LogOut,LayoutDashboard } from "lucide-react";
+import {
+  Store,
+  Users,
+  UserCheck,
+  Menu,
+  X,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axiosInstance from "../lib/aixos";
@@ -92,7 +100,8 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
               }`
             }
           >
-<LayoutDashboard/>            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+            <LayoutDashboard />{" "}
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
               Dashboard
             </span>
           </NavLink>
