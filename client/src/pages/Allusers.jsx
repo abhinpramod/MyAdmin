@@ -15,11 +15,16 @@ import {
   DialogTitle,
   IconButton,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  TablePagination, 
 } from "@mui/material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 import { Block, CheckCircle } from "@mui/icons-material";
-import { ServerCog } from "lucide-react";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -28,6 +33,18 @@ const AllUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Default rows per page
+
+  // State for filters
+  const [filters, setFilters] = useState({
+    status: "", // 'blocked' or 'active'
+    startDate: "", // Start date for filtering
+    endDate: "", // End date for filtering
+  });
+
+  // Fetch Users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -42,26 +59,53 @@ const AllUsers = () => {
     fetchUsers();
   }, []);
 
+  // Handle Search and Filters
   useEffect(() => {
-    const results = users.filter((user) =>
-      [user.name, user.email, user.phone]
+    const results = users.filter((user) => {
+      // Search by name, email, or phone
+      const matchesSearchTerm = [user.name, user.email, user.phone]
         .join(" ")
         .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-    setFilteredUsers(results);
-  }, [searchTerm, users]);
+        .includes(searchTerm.toLowerCase());
 
+      // Filter by status
+      const matchesStatus =
+        filters.status === "" ||
+        (filters.status === "blocked" && user.isBlocked) ||
+        (filters.status === "active" && !user.isBlocked);
+
+      // Filter by date range
+      const userDate = new Date(user.createdAt);
+      const matchesStartDate =
+        !filters.startDate || userDate >= new Date(filters.startDate);
+      const matchesEndDate =
+        !filters.endDate || userDate <= new Date(filters.endDate);
+
+      return matchesSearchTerm && matchesStatus && matchesStartDate && matchesEndDate;
+    });
+
+    setFilteredUsers(results);
+  }, [searchTerm, users, filters]);
+
+  // Handle Filter Change
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle Open Dialog
   const handleOpenDialog = (user) => {
     setSelectedUser(user);
     setOpenDialog(true);
   };
 
+  // Handle Close Dialog
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedUser(null);
   };
 
+  // Handle Confirm Action (Block/Unblock)
   const handleConfirmAction = async () => {
     if (!selectedUser) return;
 
@@ -84,8 +128,25 @@ const AllUsers = () => {
     }
   };
 
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page when rows per page changes
+  };
+
+  // Slice the users for the current page
+  const paginatedUsers = filteredUsers.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   return (
     <>
+      {/* Search Bar */}
       <TextField
         label="Search Users"
         variant="outlined"
@@ -95,6 +156,37 @@ const AllUsers = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
 
+      {/* Filter Controls */}
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        {/* Status Filter */}
+        <FormControl fullWidth>
+          <InputLabel>Status</InputLabel>
+          <Select
+            name="status"
+            value={filters.status}
+            onChange={handleFilterChange}
+            label="Status"
+            sx={{ width: "20%" }}
+          >
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="blocked">Blocked</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+          </Select>
+        </FormControl>
+
+        {/* Start Date Filter */}
+        <TextField
+          name="startDate"
+          label="Start Date"
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          value={filters.startDate}
+          onChange={handleFilterChange}
+          sx={{ width: "20%" }}
+        />
+      </Box>
+
+      {/* Users Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -117,17 +209,18 @@ const AllUsers = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredUsers.length === 0 && (
+            {paginatedUsers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} align="center">No users match for <strong>{searchTerm}</strong> </TableCell>
+                <TableCell colSpan={5} align="center">
+                  No users match for <strong>{searchTerm}</strong>
+                </TableCell>
               </TableRow>
             )}
-            {filteredUsers.map((user) => (
+            {paginatedUsers.map((user) => (
               <TableRow key={user._id}>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.phone || "N/A"}</TableCell>
-                {/* Updated Status Cell with Smaller Background */}
                 <TableCell>
                   <span
                     style={{
@@ -135,9 +228,9 @@ const AllUsers = () => {
                       color: "white",
                       fontWeight: "bold",
                       borderRadius: "4px",
-                      padding: "4px 8px", // Reduced padding
-                      display: "inline-block", // Prevents stretching
-                      fontSize: "12px", // Slightly smaller text
+                      padding: "4px 8px",
+                      display: "inline-block",
+                      fontSize: "12px",
                     }}
                   >
                     {user.isBlocked ? "Blocked" : "Active"}
@@ -157,6 +250,17 @@ const AllUsers = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination Controls */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredUsers.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
 
       {/* Confirmation Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>

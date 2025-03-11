@@ -29,12 +29,12 @@ import {
   Select,
   FormControl,
   InputLabel,
+  TablePagination, // Add TablePagination
 } from "@mui/material";
 import { Block, CheckCircle, Camera, MoreVert, Close } from "@mui/icons-material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 
-// Main AllContractors Component
 const AllContractors = () => {
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -60,6 +60,10 @@ const AllContractors = () => {
     startDate: "", // Start date for filtering
     endDate: "", // End date for filtering
   });
+
+  // Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Default rows per page
 
   // Fetch Contractors
   useEffect(() => {
@@ -165,6 +169,9 @@ const AllContractors = () => {
       contractor.email,
       contractor.phone,
       contractor.gstNumber,
+      contractor.city,
+      contractor.state,
+      contractor.country,
     ].some((field) => field?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = filters.status
@@ -176,11 +183,26 @@ const AllContractors = () => {
       (!filters.maxEmployees || contractor.numberOfEmployees <= parseInt(filters.maxEmployees));
 
     const matchesDate =
-      (!filters.startDate || new Date(contractor.createdAt) >= new Date(filters.startDate)) &&
-      (!filters.endDate || new Date(contractor.createdAt) <= new Date(filters.endDate));
+      (!filters.startDate || new Date(contractor.createdAt) >= new Date(filters.startDate));
 
     return matchesSearchTerm && matchesStatus && matchesEmployees && matchesDate;
   });
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to the first page when rows per page changes
+  };
+
+  // Slice the contractors for the current page
+  const paginatedContractors = filteredContractors.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
     <Box sx={{ p: 4 }}>
@@ -245,17 +267,6 @@ const AllContractors = () => {
           onChange={handleFilterChange}
           fullWidth
         />
-
-        {/* End Date Filter */}
-        {/* <TextField
-          name="endDate"
-          label="End Date"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={filters.endDate}
-          onChange={handleFilterChange}
-          fullWidth
-        /> */}
       </Box>
 
       {/* Loading Spinner */}
@@ -264,72 +275,85 @@ const AllContractors = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <b>Company Name</b>
-                </TableCell>
-                <TableCell>
-                  <b>Contractor</b>
-                </TableCell>
-                <TableCell>
-                  <b>Location</b>
-                </TableCell>
-                <TableCell>
-                  <b>Phone</b>
-                </TableCell>
-                <TableCell>
-                  <b>Employees</b>
-                </TableCell>
-                <TableCell>
-                  <b>Job Types</b>
-                </TableCell>
-                <TableCell>
-                  <b>Action</b>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredContractors.length === 0 && (
+        <>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    No contractor match for <strong>{searchTerm}</strong>
+                  <TableCell>
+                    <b>Company Name</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Contractor</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Location</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Phone</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Employees</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Job Types</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Action</b>
                   </TableCell>
                 </TableRow>
-              )}
-              {filteredContractors.map((contractor) => (
-                <TableRow
-                  key={contractor._id}
-                  hover
-                  onClick={() => handleRowClick(contractor)}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <TableCell>{contractor.companyName}</TableCell>
-                  <TableCell>{contractor.contractorName}</TableCell>
-                  <TableCell>
-                    {contractor.city}, {contractor.state}, {contractor.country}
-                  </TableCell>
-                  <TableCell>{contractor.phone}</TableCell>
-                  <TableCell>{contractor.numberOfEmployees}</TableCell>
-                  <TableCell>{contractor.jobTypes.join(", ")}</TableCell>
-                  <TableCell>
-                    <IconButton
-                      color={!contractor.isBlocked ? "error" : "success"}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent row click event
-                        handleConfirm(contractor._id, contractor.isBlocked);
-                      }}
-                    >
-                      {contractor.isBlocked ? <CheckCircle /> : <Block />}
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {paginatedContractors.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      No contractor match for <strong>{searchTerm}</strong>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {paginatedContractors.map((contractor) => (
+                  <TableRow
+                    key={contractor._id}
+                    hover
+                    onClick={() => handleRowClick(contractor)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <TableCell>{contractor.companyName}</TableCell>
+                    <TableCell>{contractor.contractorName}</TableCell>
+                    <TableCell>
+                      {contractor.city}, {contractor.state}, {contractor.country}
+                    </TableCell>
+                    <TableCell>{contractor.phone}</TableCell>
+                    <TableCell>{contractor.numberOfEmployees}</TableCell>
+                    <TableCell>{contractor.jobTypes.join(", ")}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        color={!contractor.isBlocked ? "error" : "success"}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent row click event
+                          handleConfirm(contractor._id, contractor.isBlocked);
+                        }}
+                      >
+                        {contractor.isBlocked ? <CheckCircle /> : <Block />}
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* Pagination Controls */}
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredContractors.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </>
       )}
 
       {/* Contractor Profile Dialog */}

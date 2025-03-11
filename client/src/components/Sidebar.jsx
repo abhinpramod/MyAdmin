@@ -115,7 +115,7 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
           >
             <Store className="w-5 h-5" />
             <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
-              All Users
+            Manage Users
             </span>
           </NavLink>
           {/*  */}
