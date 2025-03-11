@@ -31,7 +31,13 @@ import {
   InputLabel,
   TablePagination, // Add TablePagination
 } from "@mui/material";
-import { Block, CheckCircle, Camera, MoreVert, Close } from "@mui/icons-material";
+import {
+  Block,
+  CheckCircle,
+  Camera,
+  MoreVert,
+  Close,
+} from "@mui/icons-material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 
@@ -70,7 +76,9 @@ const AllContractors = () => {
     const fetchContractors = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get("/contractor/get-all-contractors");
+        const response = await axiosInstance.get(
+          "/contractor/get-all-contractors"
+        );
         setContractors(response.data || []);
       } catch (error) {
         console.error("Error fetching contractors:", error);
@@ -99,16 +107,22 @@ const AllContractors = () => {
       const response = await axiosInstance.put(endpoint);
 
       if (response.status === 200) {
-        toast.success(`Contractor ${isBlocked ? "unblocked" : "blocked"} successfully.`);
+        toast.success(
+          `Contractor ${isBlocked ? "unblocked" : "blocked"} successfully.`
+        );
         setContractors((prev) =>
           prev.map((contractor) =>
-            contractor._id === id ? { ...contractor, isBlocked: !isBlocked } : contractor
+            contractor._id === id
+              ? { ...contractor, isBlocked: !isBlocked }
+              : contractor
           )
         );
       }
     } catch (error) {
       console.error("Error updating block status:", error);
-      toast.error(error.response?.data?.msg || "Failed to update block status.");
+      toast.error(
+        error.response?.data?.msg || "Failed to update block status."
+      );
     } finally {
       handleCloseConfirmDialog();
     }
@@ -179,13 +193,18 @@ const AllContractors = () => {
       : true;
 
     const matchesEmployees =
-      (!filters.minEmployees || contractor.numberOfEmployees >= parseInt(filters.minEmployees)) &&
-      (!filters.maxEmployees || contractor.numberOfEmployees <= parseInt(filters.maxEmployees));
+      (!filters.minEmployees ||
+        contractor.numberOfEmployees >= parseInt(filters.minEmployees)) &&
+      (!filters.maxEmployees ||
+        contractor.numberOfEmployees <= parseInt(filters.maxEmployees));
 
     const matchesDate =
-      (!filters.startDate || new Date(contractor.createdAt) >= new Date(filters.startDate));
+      !filters.startDate ||
+      new Date(contractor.createdAt) >= new Date(filters.startDate);
 
-    return matchesSearchTerm && matchesStatus && matchesEmployees && matchesDate;
+    return (
+      matchesSearchTerm && matchesStatus && matchesEmployees && matchesDate
+    );
   });
 
   // Pagination handlers
@@ -321,7 +340,8 @@ const AllContractors = () => {
                     <TableCell>{contractor.companyName}</TableCell>
                     <TableCell>{contractor.contractorName}</TableCell>
                     <TableCell>
-                      {contractor.city}, {contractor.state}, {contractor.country}
+                      {contractor.city}, {contractor.state},{" "}
+                      {contractor.country}
                     </TableCell>
                     <TableCell>{contractor.phone}</TableCell>
                     <TableCell>{contractor.numberOfEmployees}</TableCell>
@@ -374,9 +394,22 @@ const AllContractors = () => {
         </DialogTitle>
         <DialogContent>
           {profileDialog.contractor && (
-            <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                gap: 4,
+              }}
+            >
               {/* Profile Picture */}
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", width: { xs: "100%", md: "30%" } }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  width: { xs: "100%", md: "30%" },
+                }}
+              >
                 <Avatar
                   sx={{ width: 128, height: 128, border: "4px solid #e0e0e0" }}
                   src={profileDialog.contractor.profilePicture}
@@ -388,7 +421,11 @@ const AllContractors = () => {
                   <Typography variant="subtitle1" color="text.secondary">
                     {profileDialog.contractor.contractorName}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
                     {profileDialog.contractor.description}
                   </Typography>
                 </Box>
@@ -403,17 +440,28 @@ const AllContractors = () => {
                   <strong>GST:</strong> {profileDialog.contractor.gstNumber}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  <strong>Address:</strong> {profileDialog.contractor.address}, {profileDialog.contractor.city}, {profileDialog.contractor.state}, {profileDialog.contractor.country}
+                  <strong>Address:</strong> {profileDialog.contractor.address},{" "}
+                  {profileDialog.contractor.city},{" "}
+                  {profileDialog.contractor.state},{" "}
+                  {profileDialog.contractor.country}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                  <strong>Number of Employees:</strong> {profileDialog.contractor.numberOfEmployees}
+                  <strong>Number of Employees:</strong>{" "}
+                  {profileDialog.contractor.numberOfEmployees}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Typography variant="body1" color="text.secondary">
                     <strong>Availability:</strong>
                   </Typography>
-                  <Typography variant="body1" color={profileDialog.contractor.availability ? "green" : "error"}>
-                    {profileDialog.contractor.availability ? "Available" : "Not Available"}
+                  <Typography
+                    variant="body1"
+                    color={
+                      profileDialog.contractor.availability ? "green" : "error"
+                    }
+                  >
+                    {profileDialog.contractor.availability
+                      ? "Available"
+                      : "Not Available"}
                   </Typography>
                 </Box>
               </Box>
@@ -457,7 +505,15 @@ const AllContractors = () => {
                       overflow: "hidden",
                     }}
                   >
-                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       {project.description}
                     </Typography>
                   </CardContent>
@@ -503,7 +559,8 @@ const AllContractors = () => {
 
               {/* Project Creation Date */}
               <Typography variant="body2" color="text.secondary">
-                Added on: {new Date(selectedProject.createdAt).toLocaleDateString()}
+                Added on:{" "}
+                {new Date(selectedProject.createdAt).toLocaleDateString()}
               </Typography>
             </Box>
           )}
@@ -523,10 +580,20 @@ const AllContractors = () => {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" color="text.secondary">
-            <strong>Licence Document:</strong> <img src={profileDialog.contractor?.licenseDocument} alt="Licence" style={{ width: "100%", marginTop: 8 }} />
+            <strong>Licence Document:</strong>{" "}
+            <img
+              src={profileDialog.contractor?.licenseDocument}
+              alt="Licence"
+              style={{ width: "100%", marginTop: 8 }}
+            />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <strong>GST Document:</strong> <img src={profileDialog.contractor?.gstDocument} alt="GST" style={{ width: "100%", marginTop: 8 }} />
+            <strong>GST Document:</strong>{" "}
+            <img
+              src={profileDialog.contractor?.gstDocument}
+              alt="GST"
+              style={{ width: "100%", marginTop: 8 }}
+            />
           </Typography>
         </DialogContent>
       </Dialog>
@@ -538,7 +605,8 @@ const AllContractors = () => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to {confirmDialog.isBlocked ? "unblock" : "block"} this contractor?
+            Are you sure you want to{" "}
+            {confirmDialog.isBlocked ? "unblock" : "block"} this contractor?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
