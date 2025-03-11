@@ -109,19 +109,7 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
               All Users
             </span>
           </NavLink>
-          <NavLink
-            to="contractors"
-            className={({ isActive }) =>
-              `flex items-center p-3 rounded-lg transition-colors ${
-                isActive ? "bg-gray-800" : "hover:bg-gray-800"
-              }`
-            }
-          >
-            <Users className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
-              All Contractors
-            </span>
-          </NavLink>
+          {/*  */}
           <NavLink
             to="stores"
             className={({ isActive }) =>
@@ -158,7 +146,7 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
           >
             <Users className="w-5 h-5" />
             <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
-              Contractor Requests
+              Manage Contractors
             </span>
           </NavLink>
 

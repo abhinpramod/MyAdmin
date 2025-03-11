@@ -16,11 +16,26 @@ import {
   TextField,
   Modal,
   Grid,
-  IconButton, // Import Grid for layout
+  IconButton,
 } from "@mui/material";
 import toast from "react-hot-toast";
 import axiosInstance from "../lib/aixos";
-import { X}from "lucide-react";
+import { X } from "lucide-react";
+import AllContractors from "./Contractors";
+
+// Placeholder component for the Contractors tab
+const ContractorsList = () => {
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" sx={{ mb: 2 }}>
+        Contractors List
+      </Typography>
+      <Typography variant="body1">
+        This is the list of all contractors. You can add more details or components here.
+      </Typography>
+    </Box>
+  );
+};
 
 const ContractorRequests = () => {
   const [tab, setTab] = useState(0);
@@ -43,11 +58,11 @@ const ContractorRequests = () => {
     setLoading(true);
     try {
       const endpoint =
-        tab === 0
+        tab === 1
           ? "/contractor/requests/step-one"
           : "/contractor/requests/step-two";
       const response = await axiosInstance.get(endpoint);
-      if (tab === 0) {
+      if (tab === 1) {
         setStepOneRequests(response.data || []);
       } else {
         setDocRequests(response.data || []);
@@ -62,19 +77,23 @@ const ContractorRequests = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
+    if (tab !== 0) {
+      fetchRequests();
+    }
   }, [tab]);
 
   useEffect(() => {
-    const requests = tab === 0 ? stepOneRequests : docRequests;
-    const filtered = requests.filter(
-      (request) =>
-        request.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.contractorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.phone.includes(searchTerm)
-    );
-    setFilteredRequests(filtered);
+    if (tab !== 0) {
+      const requests = tab === 1 ? stepOneRequests : docRequests;
+      const filtered = requests.filter(
+        (request) =>
+          request.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          request.contractorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          request.phone.includes(searchTerm)
+      );
+      setFilteredRequests(filtered);
+    }
   }, [searchTerm, tab, stepOneRequests, docRequests]);
 
   const handleConfirm = (action, id) => {
@@ -87,7 +106,7 @@ const ContractorRequests = () => {
 
     try {
       const endpoint =
-        tab === 0
+        tab === 1
           ? action === "approve"
             ? `/contractor/requests/step-one/approve/${contractorId}`
             : `/contractor/requests/step-one/reject/${contractorId}`
@@ -147,7 +166,7 @@ const ContractorRequests = () => {
               <Typography variant="body1" sx={{ mb: 1, color: "#555" }}>
                 <strong>Location:</strong> {request.country}, {request.state}, {request.city}
               </Typography>
-              {tab === 1 && (
+              {tab === 2 && (
                 <Typography variant="body1" sx={{ mb: 2, color: "#555" }}>
                   <strong>GST Number:</strong> {request.gstNumber}
                 </Typography>
@@ -186,7 +205,7 @@ const ContractorRequests = () => {
           </Grid>
 
           {/* Right Side: Document Images */}
-          {tab === 1 && (
+          {tab === 2 && (
             <Grid item xs={12} md={5}>
               <Box sx={{ display: "flex", flexDirection: "row", gap: 6 }}>
                 <Box>
@@ -196,7 +215,7 @@ const ContractorRequests = () => {
                   <img
                     src={request.licenseDocument}
                     alt="License Document"
-                    style={{ width: "300px",height: "200px", borderRadius: "8px", cursor: "pointer" }}
+                    style={{ width: "300px", height: "200px", borderRadius: "8px", cursor: "pointer" }}
                     onClick={() => handleImageClick(request.licenseDocument)}
                   />
                 </Box>
@@ -230,30 +249,37 @@ const ContractorRequests = () => {
           "& .Mui-selected": { color: "#1976d2" },
         }}
       >
-        <Tab label="Step 1 Verification" />
+        <Tab label="Contractors" />
+        <Tab label="Step 1 verification requests" />
         <Tab label="Document Verification" />
       </Tabs>
 
-      {/* Search Input */}
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Search by Company Name, Contractor Name, Email, or Phone"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : filteredRequests.length > 0 ? (
-        renderRequests(filteredRequests)
+      {tab === 0 ? (
+        <AllContractors />
       ) : (
-        <Typography sx={{ textAlign: "center", mt: 4, color: "#777" }}>
-          No requests found.
-        </Typography>
+        <>
+          {/* Search Input */}
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search by Company Name, Contractor Name, Email, or Phone"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : filteredRequests.length > 0 ? (
+            renderRequests(filteredRequests)
+          ) : (
+            <Typography sx={{ textAlign: "center", mt: 4, color: "#777" }}>
+              No requests found.
+            </Typography>
+          )}
+        </>
       )}
 
       {/* Confirmation Dialog */}
@@ -319,7 +345,7 @@ const ContractorRequests = () => {
             variant="contained"
             color=""
           >
-          <X />
+            <X />
           </IconButton>
         </Box>
       </Modal>

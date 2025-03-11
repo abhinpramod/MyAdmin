@@ -89,12 +89,12 @@ function App() {
                 admin && admin.role === "superadmin" ? (
                   <ManageAdmins />
                 ) : (
-                  <Navigate to="/admin/stores" />
+                  <Navigate to="/admin/dashboard" />
                 )
               }
             />
 
-            <Route path="*" element={<Navigate to="/admin/stores" />} />
+            <Route path="*" element={<Navigate to="/admin/dashboard" />} />
           </Route>
         </Routes>
       </Router>
