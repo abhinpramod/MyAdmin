@@ -16,7 +16,7 @@ import { loginAdmin, logoutAdmin } from "./redux/adminSlice";
 import Layout from "./components/Layout";
 import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
-import StoreRequests from "./pages/StoreRequests";
+import StoreRequests from "./pages/Settings";
 import ContractorRequests from "./pages/ContractorRequests";
 import Allusers from "./pages/Allusers";
 import ManageAdmins from "./pages/ManageAdmins";

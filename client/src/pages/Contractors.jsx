@@ -29,7 +29,7 @@ import {
   Select,
   FormControl,
   InputLabel,
-  TablePagination, // Add TablePagination
+  TablePagination,
 } from "@mui/material";
 import {
   Block,
@@ -54,7 +54,7 @@ const AllContractors = () => {
     open: false,
     contractor: null,
   });
-  const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null); // State for profile dropdown menu
   const [documentsDialog, setDocumentsDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -138,20 +138,20 @@ const AllContractors = () => {
     setProfileDialog({ open: false, contractor: null });
   };
 
-  // Handle More Menu Open
-  const handleMoreMenuOpen = (event) => {
-    setMoreMenuAnchor(event.currentTarget);
+  // Handle Profile Menu Open
+  const handleProfileMenuOpen = (event) => {
+    setProfileMenuAnchor(event.currentTarget);
   };
 
-  // Handle More Menu Close
-  const handleMoreMenuClose = () => {
-    setMoreMenuAnchor(null);
+  // Handle Profile Menu Close
+  const handleProfileMenuClose = () => {
+    setProfileMenuAnchor(null);
   };
 
   // Handle Documents Dialog Open
   const handleDocumentsDialogOpen = () => {
     setDocumentsDialog(true);
-    handleMoreMenuClose();
+    handleProfileMenuClose();
   };
 
   // Handle Documents Dialog Close
@@ -378,151 +378,179 @@ const AllContractors = () => {
 
       {/* Contractor Profile Dialog */}
       <Dialog
-        open={profileDialog.open}
-        onClose={handleCloseProfileDialog}
-        maxWidth="lg"
-        fullWidth
+  open={profileDialog.open}
+  onClose={handleCloseProfileDialog}
+  maxWidth="lg"
+  fullWidth
+>
+  <DialogTitle>
+    Contractor Profile
+    {/* Close Button - Positioned at the top-right corner */}
+    <IconButton
+      onClick={handleCloseProfileDialog}
+      sx={{ position: "absolute", right: 8, top: 8 }}
+    >
+      <Close />
+    </IconButton>
+  </DialogTitle>
+  <DialogContent>
+    {profileDialog.contractor && (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          gap: 4,
+          position: "relative", // Ensure relative positioning for absolute children
+        }}
       >
-        <DialogTitle>
-          Contractor Profile
-          <IconButton
-            onClick={handleCloseProfileDialog}
-            sx={{ position: "absolute", right: 8, top: 8 }}
-          >
-            <Close />
+        {/* Profile Picture */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: { xs: "100%", md: "30%" },
+          }}
+        >
+          <Avatar
+            sx={{ width: 128, height: 128, border: "4px solid #e0e0e0" }}
+            src={profileDialog.contractor.profilePicture}
+          />
+          <Box sx={{ mt: 2, textAlign: "center" }}>
+            <Typography variant="h6" fontWeight="bold">
+              {profileDialog.contractor.companyName}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              {profileDialog.contractor.contractorName}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 1 }}
+            >
+              {profileDialog.contractor.description}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Profile Details */}
+        <Box sx={{ width: { xs: "100%", md: "70%" }, spaceY: 2 }}>
+          <Typography variant="body1" color="text.secondary">
+            <strong>Email:</strong> {profileDialog.contractor.email}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            <strong>GST:</strong> {profileDialog.contractor.gstNumber}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            <strong>Address:</strong> {profileDialog.contractor.address},{" "}
+            {profileDialog.contractor.city}, {profileDialog.contractor.state},{" "}
+            {profileDialog.contractor.country}
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            <strong>Number of Employees:</strong>{" "}
+            {profileDialog.contractor.numberOfEmployees}
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="body1" color="text.secondary">
+              <strong>Availability:</strong>
+            </Typography>
+            <Typography
+              variant="body1"
+              color={
+                profileDialog.contractor.availability ? "green" : "error"
+              }
+            >
+              {profileDialog.contractor.availability
+                ? "Available"
+                : "Not Available"}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Dropdown Menu - Positioned below the close button */}
+        <Box sx={{ position: "absolute", right: 16, marginTop: 1 }}>
+          <IconButton onClick={handleProfileMenuOpen}>
+            <MoreVert />
           </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {profileDialog.contractor && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                gap: 4,
+          <Menu
+            anchorEl={profileMenuAnchor}
+            open={Boolean(profileMenuAnchor)}
+            onClose={handleProfileMenuClose}
+          >
+            <MenuItem onClick={handleDocumentsDialogOpen}>
+              Documents
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleConfirm(
+                  profileDialog.contractor._id,
+                  profileDialog.contractor.isBlocked
+                );
+                handleProfileMenuClose();
               }}
             >
-              {/* Profile Picture */}
-              <Box
+              {profileDialog.contractor.isBlocked ? "Unblock" : "Block"}
+            </MenuItem>
+          </Menu>
+        </Box>
+      </Box>
+    )}
+
+    {/* Projects Section */}
+    <Divider sx={{ my: 4 }} />
+    <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+      Projects
+    </Typography>
+    <Grid container spacing={3}>
+      {profileDialog.contractor?.projects?.map((project, index) => (
+        <Grid item key={index} xs={12} sm={6} md={4}>
+          <Card
+            onClick={() => handleProjectClick(project)}
+            sx={{
+              cursor: "pointer",
+              height: 300,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <CardMedia
+              component="img"
+              image={project.image}
+              alt={`Project ${index + 1}`}
+              sx={{
+                height: 180,
+                objectFit: "cover",
+                width: "100%",
+              }}
+            />
+            <CardContent
+              sx={{
+                flexGrow: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                overflow: "hidden",
+              }}
+            >
+              <Typography
+                variant="body2"
+                color="text.secondary"
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: { xs: "100%", md: "30%" },
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
-                <Avatar
-                  sx={{ width: 128, height: 128, border: "4px solid #e0e0e0" }}
-                  src={profileDialog.contractor.profilePicture}
-                />
-                <Box sx={{ mt: 2, textAlign: "center" }}>
-                  <Typography variant="h6" fontWeight="bold">
-                    {profileDialog.contractor.companyName}
-                  </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    {profileDialog.contractor.contractorName}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 1 }}
-                  >
-                    {profileDialog.contractor.description}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Profile Details */}
-              <Box sx={{ width: { xs: "100%", md: "70%" }, spaceY: 2 }}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Email:</strong> {profileDialog.contractor.email}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>GST:</strong> {profileDialog.contractor.gstNumber}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Address:</strong> {profileDialog.contractor.address},{" "}
-                  {profileDialog.contractor.city},{" "}
-                  {profileDialog.contractor.state},{" "}
-                  {profileDialog.contractor.country}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Number of Employees:</strong>{" "}
-                  {profileDialog.contractor.numberOfEmployees}
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Typography variant="body1" color="text.secondary">
-                    <strong>Availability:</strong>
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    color={
-                      profileDialog.contractor.availability ? "green" : "error"
-                    }
-                  >
-                    {profileDialog.contractor.availability
-                      ? "Available"
-                      : "Not Available"}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          )}
-
-          {/* Projects Section */}
-          <Divider sx={{ my: 4 }} />
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-            Projects
-          </Typography>
-          <Grid container spacing={3}>
-            {profileDialog.contractor?.projects?.map((project, index) => (
-              <Grid item key={index} xs={12} sm={6} md={4}>
-                <Card
-                  onClick={() => handleProjectClick(project)}
-                  sx={{
-                    cursor: "pointer",
-                    height: 300,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <CardMedia
-                    component="img"
-                    image={project.image}
-                    alt={`Project ${index + 1}`}
-                    sx={{
-                      height: 180,
-                      objectFit: "cover",
-                      width: "100%",
-                    }}
-                  />
-                  <CardContent
-                    sx={{
-                      flexGrow: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {project.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </DialogContent>
-      </Dialog>
+                {project.description}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  </DialogContent>
+</Dialog>
 
       {/* Project Dialog */}
       <Dialog
@@ -588,7 +616,7 @@ const AllContractors = () => {
             />
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            <strong>GST Document:</strong>{" "}
+            <strong>GST Document:</strong>
             <img
               src={profileDialog.contractor?.gstDocument}
               alt="GST"

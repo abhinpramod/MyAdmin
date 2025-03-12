@@ -7,6 +7,7 @@ import {
   X,
   LogOut,
   LayoutDashboard,
+  Settings
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -133,19 +134,6 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             </span>
           </NavLink>
           <NavLink
-            to="store-requests"
-            className={({ isActive }) =>
-              `flex items-center p-3 rounded-lg transition-colors ${
-                isActive ? "bg-gray-800" : "hover:bg-gray-800"
-              }`
-            }
-          >
-            <Store className="w-5 h-5" />
-            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
-              Store Requests
-            </span>
-          </NavLink>
-          <NavLink
             to="contractor-requests"
             className={({ isActive }) =>
               `flex items-center p-3 rounded-lg transition-colors ${
@@ -159,6 +147,19 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
             </span>
           </NavLink>
 
+          <NavLink
+            to="store-requests"
+            className={({ isActive }) =>
+              `flex items-center p-3 rounded-lg transition-colors ${
+                isActive ? "bg-gray-800" : "hover:bg-gray-800"
+              }`
+            }
+          >
+            <Settings className="w-5 h-5" />
+            <span className={`ml-3 ${isSidebarOpen ? "block" : "hidden"}`}>
+              Settings
+            </span>
+          </NavLink>
           {/* Show Manage Admins only if admin is superadmin */}
           {admin.role === "superadmin" && (
             <NavLink
