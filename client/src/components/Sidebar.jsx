@@ -148,7 +148,7 @@ const Sidebar = ({ isSidebarOpen, onToggleSidebar }) => {
           </NavLink>
 
           <NavLink
-            to="store-requests"
+            to="settings"
             className={({ isActive }) =>
               `flex items-center p-3 rounded-lg transition-colors ${
                 isActive ? "bg-gray-800" : "hover:bg-gray-800"

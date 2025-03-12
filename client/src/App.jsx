@@ -16,7 +16,7 @@ import { loginAdmin, logoutAdmin } from "./redux/adminSlice";
 import Layout from "./components/Layout";
 import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
-import StoreRequests from "./pages/Settings";
+import Settings from "./pages/Settings";
 import ContractorRequests from "./pages/ContractorRequests";
 import Allusers from "./pages/Allusers";
 import ManageAdmins from "./pages/ManageAdmins";
@@ -76,7 +76,7 @@ function App() {
           >
             <Route path="stores" element={<Stores />} />
             <Route path="contractors" element={<Contractors />} />
-            <Route path="store-requests" element={<StoreRequests />} />
+            <Route path="settings" element={<Settings />} />
             <Route
               path="contractor-requests"
               element={<ContractorRequests />}
