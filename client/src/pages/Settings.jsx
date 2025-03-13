@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Button,
   Dialog,
@@ -25,11 +24,12 @@ const AddJobTypes = () => {
   const [editingId, setEditingId] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  
 
   // Fetch job types
   const fetchJobTypes = async () => {
     try {
-      const response = await axios.get('/api/job-types');
+      const response = await axiosInstance.get('/settings/get-all-job-types');
       setJobTypes(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching job types:', error);
@@ -44,18 +44,26 @@ const AddJobTypes = () => {
       toast.error('Please provide both name and image');
       return;
     }
-
+  
+    // Create FormData and append values
     const formData = new FormData();
     formData.append('name', newJob.name);
     formData.append('image', newJob.image);
+  
+    // ✅ Log FormData content for debugging
+    for (const pair of formData.entries()) {
+      console.log(pair[0] + ':', pair[1]);
+    }
 
-
+    console.log('Adding job type:', formData);
+  
     try {
-
-      console.log(formData)
-
-      axiosInstance.post('/contractor/addjobtype',formData)
-      // await axios.post('/api/job-types', formData);
+      await axiosInstance.post('/settings/add-job-type', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
       toast.success('Job type added successfully');
       setNewJob({ name: '', image: null });
       fetchJobTypes();
@@ -64,6 +72,7 @@ const AddJobTypes = () => {
       toast.error('Failed to add job type');
     }
   };
+  
 
   // Handle image change for existing job types
   const handleImageChange = (id, file) => {
@@ -78,7 +87,8 @@ const AddJobTypes = () => {
       formData.append('image', selectedImage.file);
 
       try {
-        await axios.put(`/api/job-types/${selectedImage.id}/image`, formData);
+        // await axios.put(`/api/job-types/${selectedImage.id}/image`, formData);
+       await axiosInstance.put(`/settings/editjobtype/${selectedImage.id}`, formData)
         toast.success('Image updated successfully');
         fetchJobTypes();
       } catch (error) {
