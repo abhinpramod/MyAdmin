@@ -11,7 +11,7 @@ const cors = require("cors");
 const CookieParser = require("cookie-parser");
 app.use(express.json());
 app.use(CookieParser());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "http://localhost:5174", credentials: true }));
 
 
 app.use('/api/admin',admincontrol)

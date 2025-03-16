@@ -25,6 +25,7 @@ import {
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 import { Block, CheckCircle } from "@mui/icons-material";
+import { Loader } from "lucide-react";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -32,6 +33,7 @@ const AllUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [isloading,setIsloading]=useState(false)
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -48,11 +50,15 @@ const AllUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        setIsloading(true)
         const response = await axiosInstance.get("/user/get-all-users");
         setUsers(response.data);
         setFilteredUsers(response.data);
+        setIsloading(false)
       } catch (error) {
         console.error("Error fetching users:", error);
+        toast.error(error)
+        setIsloading(false)
       }
     };
 
@@ -144,6 +150,14 @@ const AllUsers = () => {
     page * rowsPerPage + rowsPerPage
   );
 
+  if(isloading){
+
+    return (   <div className="flex items-center justify-center h-screen">
+                    <Loader className="size-10 animate-spin" />
+            
+            
+          </div>)
+  } else{
   return (
     <>
       {/* Search Bar */}
@@ -289,5 +303,6 @@ const AllUsers = () => {
     </>
   );
 };
+}
 
 export default AllUsers;

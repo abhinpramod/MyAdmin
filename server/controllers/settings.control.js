@@ -20,7 +20,8 @@ const Addjobtype = async (req, res) => {
       // Cloudinary URL is in req.file.path
       const jobType = new  jobtypes ({
         name,
-        image: req.file.path, // Cloudinary URL
+        image: req.file.path, 
+        // Cloudinary URL
       });
   
       await jobType.save();
