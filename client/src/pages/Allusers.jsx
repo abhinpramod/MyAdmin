@@ -8,11 +8,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   IconButton,
   TextField,
   FormControl,
@@ -20,12 +15,13 @@ import {
   Select,
   MenuItem,
   Box,
-  TablePagination, 
+  TablePagination,
 } from "@mui/material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
 import { Block, CheckCircle } from "@mui/icons-material";
 import { Loader } from "lucide-react";
+import ConfirmationDialog from "../components/ConfirmationDialog"; // Import the reusable dialog
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -33,7 +29,7 @@ const AllUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [isloading,setIsloading]=useState(false)
+  const [isloading, setIsloading] = useState(false);
 
   // Pagination state
   const [page, setPage] = useState(0);
@@ -50,15 +46,15 @@ const AllUsers = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        setIsloading(true)
+        setIsloading(true);
         const response = await axiosInstance.get("/user/get-all-users");
         setUsers(response.data);
         setFilteredUsers(response.data);
-        setIsloading(false)
+        setIsloading(false);
       } catch (error) {
         console.error("Error fetching users:", error);
-        toast.error(error)
-        setIsloading(false)
+        toast.error(error);
+        setIsloading(false);
       }
     };
 
@@ -150,14 +146,14 @@ const AllUsers = () => {
     page * rowsPerPage + rowsPerPage
   );
 
-  if(isloading){
+  if (isloading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
 
-    return (   <div className="flex items-center justify-center h-screen">
-                    <Loader className="size-10 animate-spin" />
-            
-            
-          </div>)
-  } else{
   return (
     <>
       {/* Search Bar */}
@@ -276,33 +272,20 @@ const AllUsers = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
 
-      {/* Confirmation Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          Confirm {selectedUser?.isBlocked ? "unblock" : "block"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to{" "}
-            {selectedUser?.isBlocked ? "unblock" : "block"} this user?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmAction}
-            color="primary"
-            variant="contained"
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Reusable Confirmation Dialog */}
+      <ConfirmationDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        onConfirm={handleConfirmAction}
+        title={`Confirm ${selectedUser?.isBlocked ? "Unblock" : "Block"}`}
+        message={`Are you sure you want to ${
+          selectedUser?.isBlocked ? "unblock" : "block"
+        } this user?`}
+        confirmButtonText={selectedUser?.isBlocked ? "Unblock" : "Block"}
+        confirmButtonColor={selectedUser?.isBlocked ? "success" : "error"}
+      />
     </>
   );
 };
-}
 
 export default AllUsers;
