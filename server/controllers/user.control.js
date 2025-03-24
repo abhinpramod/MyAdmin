@@ -1,16 +1,70 @@
 const User = require("../model/user.js");
 const sendEmail = require("../lib/mailer.js");
 
+// Backend controller (Node.js/Express)
 const allusers = async (req, res) => {
   try {
-    const data = await User.find();
-    res.status(200).json(data);
+    const { page = 1, limit = 10, search = '', status, startDate, endDate } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build query
+    const query = {};
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Status filter
+    if (status === 'blocked') query.isBlocked = true;
+    if (status === 'active') query.isBlocked = false;
+
+    // Date range
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    // Get data with pagination
+    const [data, total] = await Promise.all([
+      User.find(query)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .sort({ createdAt: -1 }),
+      User.countDocuments(query)
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: skip + parseInt(limit) < total
+      }
+    });
   } catch (error) {
-    console.log("error from AllUsers :", error.message);
-    res.status(500).json({ msg: error.message });
+    console.error('Error in allusers:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasMore: false
+      }
+    });
   }
 };
-
 const toggleBlockStatus = async (req, res) => {
   try {
     const { userId } = req.params; // Extract userId from the URL

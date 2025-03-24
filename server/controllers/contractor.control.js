@@ -78,12 +78,86 @@ const requestapprove1st = async (req, res) => {
 };
 const allcontractors = async (req, res) => {
   try {
-    console.log("AllContractors");
-    const data = await contractor.find({verified: true});
-    res.status(200).json(data);
+    const { 
+      page = 1, 
+      limit = 5, 
+      search = '', 
+      status, 
+      employeeRange,
+      startDate,
+      endDate
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+    
+    let query = { verified: true };
+
+    // Search across multiple fields
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      query.$or = [
+        { companyName: searchRegex },
+        { contractorName: searchRegex },
+        { email: searchRegex },
+        { phone: searchRegex },
+        { gstNumber: searchRegex },
+        { city: searchRegex },
+        { state: searchRegex },
+        { country: searchRegex }
+      ];
+    }
+
+    // Status filter
+    if (status) {
+      query.isBlocked = status === 'blocked';
+    }
+
+    // Employee range filter
+    if (employeeRange) {
+      switch(employeeRange) {
+        case '1-10':
+          query.numberOfEmployees = { $gte: 1, $lte: 10 };
+          break;
+        case '10-20':
+          query.numberOfEmployees = { $gt: 10, $lte: 20 };
+          break;
+        case '20-50':
+          query.numberOfEmployees = { $gt: 20, $lte: 50 };
+          break;
+        case '50-100':
+          query.numberOfEmployees = { $gt: 50, $lte: 100 };
+          break;
+        case '100+':
+          query.numberOfEmployees = { $gt: 100 };
+          break;
+      }
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const total = await contractor.countDocuments(query);
+    const data = await contractor.find(query)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      data,
+      total,
+      page: Number(page),
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
-    console.log("error from AllContractors :", error.message);
-    res.status(500).json({ msg: error.message });
+    console.error("Error from AllContractors:", error.message);
+    res.status(500).json({ 
+      success: false,
+      msg: error.message 
+    });
   }
 };
 

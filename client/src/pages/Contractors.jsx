@@ -3,43 +3,25 @@ import {
   Box,
   Typography,
   TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
-  Avatar,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  Divider,
   Button,
-  Menu,
-  MenuItem,
-  Select,
   FormControl,
   InputLabel,
-  TablePagination,
+  Select,
+  MenuItem,
+  IconButton,
+  CardMedia,
 } from "@mui/material";
-import {
-  Block,
-  CheckCircle,
-  Camera,
-  MoreVert,
-  Close,
-} from "@mui/icons-material";
+import { Close } from "@mui/icons-material";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
+import ContractorsTable from "../components/Contractor/ContractorsTable";
+import ContractorProfile from "../components/Contractor/ContractorProfile";
 
 const AllContractors = () => {
   const [contractors, setContractors] = useState([]);
@@ -54,32 +36,59 @@ const AllContractors = () => {
     open: false,
     contractor: null,
   });
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null); // State for profile dropdown menu
-  const [documentsDialog, setDocumentsDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
 
   // State for filters
   const [filters, setFilters] = useState({
-    status: "", // 'blocked' or 'unblocked'
-    minEmployees: "", // Minimum number of employees
-    maxEmployees: "", // Maximum number of employees
-    startDate: "", // Start date for filtering
-    endDate: "", // End date for filtering
+    status: "",
+    employeeRange: "",
+    startDate: "",
+    endDate: "",
   });
+
+  // Employee range options
+  const employeeRanges = [
+    { value: "", label: "All" },
+    { value: "1-10", label: "1-10 Employees" },
+    { value: "10-20", label: "10-20 Employees" },
+    { value: "20-50", label: "20-50 Employees" },
+    { value: "50-100", label: "50-100 Employees" },
+    { value: "100+", label: "100+ Employees" },
+  ];
 
   // Pagination state
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5); // Default rows per page
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Fetch Contractors
+  // Build query parameters from filters and search
+  const buildQueryParams = () => {
+    const params = {
+      page: page + 1,
+      limit: rowsPerPage,
+    };
+
+    if (searchTerm) params.search = searchTerm;
+    if (filters.status) params.status = filters.status;
+    if (filters.employeeRange) params.employeeRange = filters.employeeRange;
+    if (filters.startDate) params.startDate = filters.startDate;
+    if (filters.endDate) params.endDate = filters.endDate;
+
+    return params;
+  };
+
+  // Fetch Contractors with pagination, search, and filters
   useEffect(() => {
     const fetchContractors = async () => {
       setLoading(true);
       try {
+        const params = buildQueryParams();
+        const queryString = new URLSearchParams(params).toString();
         const response = await axiosInstance.get(
-          "/contractor/get-all-contractors"
+          `/contractor/get-all-contractors?${queryString}`
         );
-        setContractors(response.data || []);
+        setContractors(response.data.data || []);
+        setTotalCount(response.data.total || 0);
       } catch (error) {
         console.error("Error fetching contractors:", error);
         toast.error("Failed to fetch contractors.");
@@ -88,8 +97,12 @@ const AllContractors = () => {
       }
     };
 
-    fetchContractors();
-  }, []);
+    const debounceTimer = setTimeout(() => {
+      fetchContractors();
+    }, 500); // Debounce search by 500ms
+
+    return () => clearTimeout(debounceTimer);
+  }, [page, rowsPerPage, searchTerm, filters]);
 
   // Handle Block/Unblock Confirmation
   const handleConfirm = (id, isBlocked) => {
@@ -110,13 +123,13 @@ const AllContractors = () => {
         toast.success(
           `Contractor ${isBlocked ? "unblocked" : "blocked"} successfully.`
         );
-        setContractors((prev) =>
-          prev.map((contractor) =>
-            contractor._id === id
-              ? { ...contractor, isBlocked: !isBlocked }
-              : contractor
-          )
+        // Refetch contractors after blocking/unblocking
+        const params = buildQueryParams();
+        const queryString = new URLSearchParams(params).toString();
+        const newResponse = await axiosInstance.get(
+          `/contractor/get-all-contractors?${queryString}`
         );
+        setContractors(newResponse.data.data || []);
       }
     } catch (error) {
       console.error("Error updating block status:", error);
@@ -138,27 +151,6 @@ const AllContractors = () => {
     setProfileDialog({ open: false, contractor: null });
   };
 
-  // Handle Profile Menu Open
-  const handleProfileMenuOpen = (event) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
-
-  // Handle Profile Menu Close
-  const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
-
-  // Handle Documents Dialog Open
-  const handleDocumentsDialogOpen = () => {
-    setDocumentsDialog(true);
-    handleProfileMenuClose();
-  };
-
-  // Handle Documents Dialog Close
-  const handleDocumentsDialogClose = () => {
-    setDocumentsDialog(false);
-  };
-
   // Handle Project Click to Open Project Dialog
   const handleProjectClick = (project) => {
     setSelectedProject(project);
@@ -175,37 +167,16 @@ const AllContractors = () => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Filter Contractors
-  const filteredContractors = contractors.filter((contractor) => {
-    const matchesSearchTerm = [
-      contractor.companyName,
-      contractor.contractorName,
-      contractor.email,
-      contractor.phone,
-      contractor.gstNumber,
-      contractor.city,
-      contractor.state,
-      contractor.country,
-    ].some((field) => field?.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesStatus = filters.status
-      ? contractor.isBlocked === (filters.status === "blocked")
-      : true;
-
-    const matchesEmployees =
-      (!filters.minEmployees ||
-        contractor.numberOfEmployees >= parseInt(filters.minEmployees)) &&
-      (!filters.maxEmployees ||
-        contractor.numberOfEmployees <= parseInt(filters.maxEmployees));
-
-    const matchesDate =
-      !filters.startDate ||
-      new Date(contractor.createdAt) >= new Date(filters.startDate);
-
-    return (
-      matchesSearchTerm && matchesStatus && matchesEmployees && matchesDate
-    );
-  });
+  // Reset all filters
+  const handleResetFilters = () => {
+    setFilters({
+      status: "",
+      employeeRange: "",
+      startDate: "",
+      endDate: "",
+    });
+    setSearchTerm("");
+  };
 
   // Pagination handlers
   const handleChangePage = (event, newPage) => {
@@ -214,14 +185,8 @@ const AllContractors = () => {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when rows per page changes
+    setPage(0); // Reset to first page when rows per page changes
   };
-
-  // Slice the contractors for the current page
-  const paginatedContractors = filteredContractors.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
 
   return (
     <Box sx={{ p: 4 }}>
@@ -240,8 +205,7 @@ const AllContractors = () => {
       />
 
       {/* Filter Controls */}
-      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-        {/* Status Filter */}
+      <Box sx={{ display: "flex", gap: 2, mb: 3, alignItems: "center" }}>
         <FormControl fullWidth>
           <InputLabel>Status</InputLabel>
           <Select
@@ -256,27 +220,22 @@ const AllContractors = () => {
           </Select>
         </FormControl>
 
-        {/* Min Employees Filter */}
-        <TextField
-          name="minEmployees"
-          label="Min Employees"
-          type="number"
-          value={filters.minEmployees}
-          onChange={handleFilterChange}
-          fullWidth
-        />
+        <FormControl fullWidth>
+          <InputLabel>Employee Range</InputLabel>
+          <Select
+            name="employeeRange"
+            value={filters.employeeRange}
+            onChange={handleFilterChange}
+            label="Employee Range"
+          >
+            {employeeRanges.map((range) => (
+              <MenuItem key={range.value} value={range.value}>
+                {range.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-        {/* Max Employees Filter */}
-        <TextField
-          name="maxEmployees"
-          label="Max Employees"
-          type="number"
-          value={filters.maxEmployees}
-          onChange={handleFilterChange}
-          fullWidth
-        />
-
-        {/* Start Date Filter */}
         <TextField
           name="startDate"
           label="Start Date"
@@ -286,233 +245,34 @@ const AllContractors = () => {
           onChange={handleFilterChange}
           fullWidth
         />
+
+        <Button
+          variant="outlined"
+          onClick={handleResetFilters}
+          sx={{ height: "56px" }}
+        >
+          Reset Filters
+        </Button>
       </Box>
 
-      {/* Loading Spinner */}
-      {loading ? (
-        <Box display="flex" justifyContent="center">
-          <CircularProgress />
-        </Box>
-      ) : (
-        <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <b>Profile</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Company Name</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Contractor</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Location</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Phone</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Employees</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Job Types</b>
-                  </TableCell>
-                  <TableCell>
-                    <b>Action</b>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedContractors.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={8} align="center">
-                      No contractor match for <strong>{searchTerm}</strong>
-                    </TableCell>
-                  </TableRow>
-                )}
-                {paginatedContractors.map((contractor) => (
-                  <TableRow
-                    key={contractor._id}
-                    hover
-                    onClick={() => handleRowClick(contractor)}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell>
-                      <Avatar
-                        src={contractor.profilePicture}
-                        alt={contractor.contractorName}
-                        sx={{ width: 40, height: 40 }}
-                      >
-                        {!contractor.profilePicture &&
-                          contractor.contractorName.charAt(0)}
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>{contractor.companyName}</TableCell>
-                    <TableCell>{contractor.contractorName}</TableCell>
-                    <TableCell>
-                      {contractor.city}, {contractor.state},{" "}
-                      {contractor.country}
-                    </TableCell>
-                    <TableCell>{contractor.phone}</TableCell>
-                    <TableCell>{contractor.numberOfEmployees}</TableCell>
-                    <TableCell>{contractor.jobTypes.join(", ")}</TableCell>
-                    <TableCell>
-                      <IconButton
-                        color={!contractor.isBlocked ? "error" : "success"}
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent row click event
-                          handleConfirm(contractor._id, contractor.isBlocked);
-                        }}
-                      >
-                        {contractor.isBlocked ? <CheckCircle /> : <Block />}
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+      <ContractorsTable
+        contractors={contractors}
+        loading={loading}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        handleChangePage={handleChangePage}
+        handleChangeRowsPerPage={handleChangeRowsPerPage}
+        handleRowClick={handleRowClick}
+        handleConfirm={handleConfirm}
+        totalCount={totalCount}
+      />
 
-          {/* Pagination Controls */}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={filteredContractors.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </>
-      )}
-
-      {/* Contractor Profile Dialog */}
-      <Dialog
+      <ContractorProfile
         open={profileDialog.open}
-        onClose={handleCloseProfileDialog}
-        maxWidth="lg"
-        fullWidth
-      >
-        <DialogTitle>
-          Contractor Profile
-          <IconButton
-            onClick={handleCloseProfileDialog}
-            sx={{ position: "absolute", right: 8, top: 8 }}
-          >
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {profileDialog.contractor && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                gap: 4,
-              }}
-            >
-              {/* Profile Picture */}
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: { xs: "100%", md: "30%" },
-                }}
-              >
-                <Avatar
-                  sx={{ width: 128, height: 128, border: "4px solid #e0e0e0" }}
-                  src={profileDialog.contractor.profilePicture}
-                />
-                <Box sx={{ mt: 2, textAlign: "center" }}>
-                  <Typography variant="h6" fontWeight="bold">
-                    {profileDialog.contractor.companyName}
-                  </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    {profileDialog.contractor.contractorName}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Profile Details */}
-              <Box sx={{ width: { xs: "100%", md: "70%" } }}>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Email:</strong> {profileDialog.contractor.email}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>GST:</strong> {profileDialog.contractor.gstNumber}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Address:</strong> {profileDialog.contractor.address},{" "}
-                  {profileDialog.contractor.city}, {profileDialog.contractor.state},{" "}
-                  {profileDialog.contractor.country}
-                </Typography>
-                <Typography variant="body1" color="text.secondary">
-                  <strong>Number of Employees:</strong>{" "}
-                  {profileDialog.contractor.numberOfEmployees}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-
-          {/* Projects Section */}
-          <Divider sx={{ my: 4 }} />
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-            Projects
-          </Typography>
-          <Grid container spacing={3}>
-            {profileDialog.contractor?.projects?.map((project, index) => (
-              <Grid item key={index} xs={12} sm={6} md={4}>
-                <Card
-                  onClick={() => handleProjectClick(project)}
-                  sx={{
-                    cursor: "pointer",
-                    height: 300,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <CardMedia
-                    component="img"
-                    image={project.image}
-                    alt={`Project ${index + 1}`}
-                    sx={{
-                      height: 180,
-                      objectFit: "cover",
-                      width: "100%",
-                    }}
-                  />
-                  <CardContent
-                    sx={{
-                      flexGrow: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {project.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </DialogContent>
-      </Dialog>
+        contractor={profileDialog.contractor}
+        handleClose={handleCloseProfileDialog}
+        handleProjectClick={handleProjectClick}
+      />
 
       {/* Project Dialog */}
       <Dialog
@@ -533,7 +293,6 @@ const AllContractors = () => {
         <DialogContent>
           {selectedProject && (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {/* Image */}
               <CardMedia
                 component="img"
                 height="80"
@@ -542,49 +301,16 @@ const AllContractors = () => {
                 sx={{ objectFit: "cover", borderRadius: 2, width: "100%" }}
               />
 
-              {/* Project Description */}
               <Typography variant="h6" fontWeight="bold">
                 {selectedProject.description}
               </Typography>
 
-              {/* Project Creation Date */}
               <Typography variant="body2" color="text.secondary">
                 Added on:{" "}
                 {new Date(selectedProject.createdAt).toLocaleDateString()}
               </Typography>
             </Box>
           )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Documents Dialog */}
-      <Dialog open={documentsDialog} onClose={handleDocumentsDialogClose}>
-        <DialogTitle>
-          Documents
-          <IconButton
-            onClick={handleDocumentsDialogClose}
-            sx={{ position: "absolute", right: 8, top: 8 }}
-          >
-            <Close />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" color="text.secondary">
-            <strong>Licence Document:</strong>{" "}
-            <img
-              src={profileDialog.contractor?.licenseDocument}
-              alt="Licence"
-              style={{ width: "100%", marginTop: 8 }}
-            />
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            <strong>GST Document:</strong>
-            <img
-              src={profileDialog.contractor?.gstDocument}
-              alt="GST"
-              style={{ width: "100%", marginTop: 8 }}
-            />
-          </Typography>
         </DialogContent>
       </Dialog>
 
