@@ -110,7 +110,14 @@ const ContractorProfile = ({
 
           {/* Projects Section with Documents Button */}
           <Divider sx={{ my: 4 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
             <Typography variant="h6" fontWeight="bold">
               Projects
             </Typography>
@@ -118,7 +125,7 @@ const ContractorProfile = ({
               variant="outlined"
               startIcon={<Description />}
               onClick={handleDocumentsDialogOpen}
-              sx={{ textTransform: 'none' }}
+              sx={{ textTransform: "none" }}
             >
               View Documents
             </Button>
