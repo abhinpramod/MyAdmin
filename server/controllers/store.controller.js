@@ -113,8 +113,8 @@ exports.blockStore = async (req, res) => {
     }
 
 
-    res.json({ message: 'Store blocked successfully', store });
     sendEmail(store.email, "Account Blocked", "Your account has been blocked.connect admin.");
+    res.json({ message: 'Store blocked successfully', store });
 
   } catch (error) {
     console.error('Error blocking store:', error);

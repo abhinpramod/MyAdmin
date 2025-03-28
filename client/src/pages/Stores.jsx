@@ -141,6 +141,23 @@ const AdminStoreApproval = () => {
   const [searchInput, setSearchInput] = useState('');
   const [isFetching, setIsFetching] = useState(false);
 
+  // Filter stores based on current filter
+  const filteredStores = stores.filter(store => {
+    if (filter === 'pending') {
+      return !store.approved && !store.isBlocked && !store.rejectionReason;
+    }
+    if (filter === 'approved') {
+      return store.approved && !store.isBlocked;
+    }
+    if (filter === 'blocked') {
+      return store.isBlocked;
+    }
+    if (filter === 'rejected') {
+      return !store.approved && store.rejectionReason;
+    }
+    return true; // 'all' filter
+  });
+
   // Fetch stores with pagination and search
   const fetchStores = useCallback(async (reset = false) => {
     if (isFetching) return;
@@ -207,6 +224,7 @@ const AdminStoreApproval = () => {
       ));
       toast.success('Store approved successfully!');
       setSelectedStore(null);
+      setFilter('approved');
     } catch (error) {
       toast.error('Failed to approve store. Please try again.');
       console.error('Approval error:', error);
@@ -234,6 +252,7 @@ const AdminStoreApproval = () => {
       setRejectModalOpen(false);
       setRejectionReason('');
       setSelectedStore(null);
+      setFilter('rejected');
     } catch (error) {
       toast.error('Failed to reject store. Please try again.');
       console.error('Rejection error:', error);
@@ -253,6 +272,8 @@ const AdminStoreApproval = () => {
       toast.success('Store blocked successfully!');
       setAnchorEl(null);
       setSelectedStoreForMenu(null);
+      setSelectedStore(null);
+      setFilter('blocked');
     } catch (error) {
       toast.error('Failed to block store. Please try again.');
       console.error('Block error:', error);
@@ -272,6 +293,8 @@ const AdminStoreApproval = () => {
       toast.success('Store unblocked successfully!');
       setAnchorEl(null);
       setSelectedStoreForMenu(null);
+      setSelectedStore(null);
+      setFilter('approved');
     } catch (error) {
       toast.error('Failed to unblock store. Please try again.');
       console.error('Unblock error:', error);
@@ -288,12 +311,23 @@ const AdminStoreApproval = () => {
   };
 
   // Status chip component
-  const StatusChip = ({ approved, isBlocked }) => {
+  const StatusChip = ({ approved, isBlocked, rejectionReason }) => {
     if (isBlocked) {
       return (
         <Chip 
           icon={<Lock size={16} />} 
           label="Blocked" 
+          color="error" 
+          variant="outlined" 
+          size="small" 
+        />
+      );
+    }
+    if (rejectionReason) {
+      return (
+        <Chip 
+          icon={<X size={16} />} 
+          label="Rejected" 
           color="error" 
           variant="outlined" 
           size="small" 
@@ -380,6 +414,9 @@ const AdminStoreApproval = () => {
             <ToggleButton value="blocked" aria-label="blocked">
               Blocked
             </ToggleButton>
+            <ToggleButton value="rejected" aria-label="rejected">
+              Rejected
+            </ToggleButton>
             <ToggleButton value="all" aria-label="all">
               All Stores
             </ToggleButton>
@@ -388,14 +425,14 @@ const AdminStoreApproval = () => {
       </div>
 
       {/* Loading State */}
-      {loading && stores.length === 0 && (
+      {loading && filteredStores.length === 0 && (
         <div className="flex justify-center items-center h-64">
           <CircularProgress />
         </div>
       )}
 
       {/* Empty State */}
-      {!loading && stores.length === 0 && (
+      {!loading && filteredStores.length === 0 && (
         <div className="flex flex-col items-center justify-center h-64 text-gray-500">
           <Store size={48} className="mb-4" />
           <Typography variant="h6">No stores found</Typography>
@@ -405,7 +442,7 @@ const AdminStoreApproval = () => {
 
       {/* Store Cards Grid with Infinite Scroll */}
       <InfiniteScroll
-        dataLength={stores.length}
+        dataLength={filteredStores.length}
         next={fetchStores}
         hasMore={hasMore && !isFetching}
         loader={
@@ -415,19 +452,23 @@ const AdminStoreApproval = () => {
         }
         endMessage={
           <p className="text-center text-gray-500 my-4">
-            {stores.length > 0 ? "You've seen all stores" : ""}
+            {filteredStores.length > 0 ? "You've seen all stores" : ""}
           </p>
         }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {stores.map((store) => (
+          {filteredStores.map((store) => (
             <Card key={store._id} variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1 }}>
                 <div className="flex justify-between items-start mb-2">
                   <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
                     {store.storeName}
                   </Typography>
-                  <StatusChip approved={store.approved} isBlocked={store.isBlocked} />
+                  <StatusChip 
+                    approved={store.approved} 
+                    isBlocked={store.isBlocked} 
+                    rejectionReason={store.rejectionReason} 
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -466,7 +507,7 @@ const AdminStoreApproval = () => {
                 </Button>
                 
                 <div className="flex space-x-2">
-                  {!store.approved && !store.isBlocked && (
+                  {!store.approved && !store.isBlocked && !store.rejectionReason && (
                     <>
                       <Button
                         size="small"
@@ -495,7 +536,7 @@ const AdminStoreApproval = () => {
                       </Button>
                     </>
                   )}
-                  {(store.approved || store.isBlocked) && (
+                  {(store.approved || store.isBlocked || store.rejectionReason) && (
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuOpen(e, store)}
@@ -553,7 +594,11 @@ const AdminStoreApproval = () => {
                 <Typography variant="h5" component="h2" sx={{ fontWeight: 600 }}>
                   {selectedStore.storeName}
                 </Typography>
-                <StatusChip approved={selectedStore.approved} isBlocked={selectedStore.isBlocked} />
+                <StatusChip 
+                  approved={selectedStore.approved} 
+                  isBlocked={selectedStore.isBlocked} 
+                  rejectionReason={selectedStore.rejectionReason} 
+                />
               </div>
               
               <Divider sx={{ my: 2 }} />
@@ -669,7 +714,7 @@ const AdminStoreApproval = () => {
                   </ListItem>
                 )}
                 
-                {selectedStore.rejectionReason && !selectedStore.approved && (
+                {selectedStore.rejectionReason && (
                   <ListItem>
                     <ListItemIcon sx={{ minWidth: 32 }}>
                       <AlertCircle size={18} color="error" />
@@ -693,7 +738,7 @@ const AdminStoreApproval = () => {
                 >
                   Close
                 </Button>
-                {!selectedStore.approved && !selectedStore.isBlocked && (
+                {!selectedStore.approved && !selectedStore.isBlocked && !selectedStore.rejectionReason && (
                   <>
                     <Button
                       variant="contained"
@@ -719,7 +764,7 @@ const AdminStoreApproval = () => {
                     </Button>
                   </>
                 )}
-                {(selectedStore.approved || selectedStore.isBlocked) && (
+                {(selectedStore.approved || selectedStore.isBlocked || selectedStore.rejectionReason) && (
                   <Button
                     variant="contained"
                     color={selectedStore.isBlocked ? 'success' : 'error'}
@@ -730,7 +775,6 @@ const AdminStoreApproval = () => {
                       } else {
                         blockStore(selectedStore._id);
                       }
-                      setSelectedStore(null);
                     }}
                     sx={{ textTransform: 'none' }}
                     disabled={loading}

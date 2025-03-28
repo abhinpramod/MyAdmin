@@ -1,20 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const storeController = require('../controllers/store.controller');
+const { protectRoute } = require("../middleware/authmiddleware");
 
+// app.use(protectRoute);
 // Get stores with optional filtering
 router.get('/', storeController.getStores);
 
 // Approve a store
-router.put('/:id/approve', storeController.approveStore);
+router.put('/:id/approve',protectRoute, storeController.approveStore);
 
 // Reject a store
-router.put('/:id/reject', storeController.rejectStore);
+router.put('/:id/reject',protectRoute, storeController.rejectStore);
 
 // Block a store
-router.put('/:id/block', storeController.blockStore);
+router.put('/:id/block',protectRoute, storeController.blockStore);
 
 // Unblock a store
-router.put('/:id/unblock', storeController.unblockStore);
+router.put('/:id/unblock',protectRoute, storeController.unblockStore);
 
 module.exports = router;
