@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -17,13 +17,13 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  InputAdornment
 } from '@mui/material';
 import { 
   Check, 
@@ -43,69 +43,12 @@ import {
   X as CloseIcon,
   MoreVertical,
   Lock,
-  Unlock
+  Unlock,
+  Search
 } from 'lucide-react';
-
-// Mock data with image URLs
-const mockStores = [
-  {
-    _id: '64a1b5c8e8b9d8f5c8e8b9d8',
-    storeName: 'Fresh Groceries',
-    ownerName: 'John Doe',
-    country: 'India',
-    state: 'Maharashtra',
-    city: 'Mumbai',
-    address: '123 Main Street, Andheri East',
-    email: 'john@freshgroceries.com',
-    phone: '+919876543210',
-    storeType: 'Grocery',
-    gstNumber: '22ABCDE1234F1Z5',
-    gstDocument: 'https://images.unsplash.com/photo-1600189261867-8e3a230a5a90?w=600&auto=format',
-    storeLicense: 'https://images.unsplash.com/photo-1587202372775-e229f1723e1b?w=600&auto=format',
-    approved: false,
-    isBlocked: false,
-    createdAt: '2023-05-15T10:00:00Z',
-    updatedAt: '2023-05-15T10:00:00Z'
-  },
-  {
-    _id: '64a1b5c8e8b9d8f5c8e8b9d9',
-    storeName: 'Tech Gadgets',
-    ownerName: 'Jane Smith',
-    country: 'India',
-    state: 'Karnataka',
-    city: 'Bangalore',
-    address: '456 Tech Park, Whitefield',
-    email: 'jane@techgadgets.com',
-    phone: '+919876543211',
-    storeType: 'Electronics',
-    gstNumber: '29XYZDE5678G2H6',
-    gstDocument: 'https://images.unsplash.com/photo-1546054454-aa26e2b734c7?w=600&auto=format',
-    storeLicense: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=600&auto=format',
-    approved: true,
-    isBlocked: false,
-    createdAt: '2023-05-10T09:30:00Z',
-    updatedAt: '2023-05-12T14:20:00Z'
-  },
-  {
-    _id: '64a1b5c8e8b9d8f5c8e8b9da',
-    storeName: 'Fashion Hub',
-    ownerName: 'Raj Patel',
-    country: 'India',
-    state: 'Gujarat',
-    city: 'Ahmedabad',
-    address: '789 Fashion Street, CG Road',
-    email: 'raj@fashionhub.com',
-    phone: '+919876543212',
-    storeType: 'Clothing',
-    gstNumber: '24GHIJK5678L3M9',
-    gstDocument: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format',
-    storeLicense: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=600&auto=format',
-    approved: true,
-    isBlocked: true,
-    createdAt: '2023-05-18T11:45:00Z',
-    updatedAt: '2023-05-20T09:15:00Z'
-  }
-];
+import InfiniteScroll from 'react-infinite-scroll-component';
+import axios from '../lib/aixos';
+import { toast } from 'react-hot-toast';
 
 // Modal style configuration
 const modalStyle = {
@@ -179,13 +122,12 @@ const DocumentViewer = ({ open, onClose, documentUrl, title }) => {
 };
 
 const AdminStoreApproval = () => {
-  const [stores, setStores] = useState(mockStores);
-  const [loading, setLoading] = useState(false);
+  const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [filter, setFilter] = useState('pending');
-  const [notification, setNotification] = useState(null);
   const [documentViewer, setDocumentViewer] = useState({
     open: false,
     url: '',
@@ -193,38 +135,93 @@ const AdminStoreApproval = () => {
   });
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedStoreForMenu, setSelectedStoreForMenu] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
 
-  // Filter stores based on current filter
-  const filteredStores = stores.filter(store => {
-    if (filter === 'pending') return !store.approved;
-    if (filter === 'approved') return store.approved && !store.isBlocked;
-    if (filter === 'blocked') return store.isBlocked;
-    return true; // 'all'
-  });
+  // Fetch stores with pagination and search
+  const fetchStores = useCallback(async (reset = false) => {
+    if (isFetching) return;
+    
+    try {
+      setIsFetching(true);
+      setLoading(true);
+      
+      const currentPage = reset ? 1 : page;
+      const params = {
+        page: currentPage,
+        limit: 10,
+        search: searchQuery
+      };
+      
+      if (filter !== 'all') {
+        params.filter = filter;
+      }
+
+      const response = await axios.get('/stores', { params });
+      const data = response.data;
+      
+      if (reset) {
+        setStores(data.stores || []);
+        setPage(2);
+      } else {
+        setStores(prev => [...prev, ...(data.stores || [])]);
+        setPage(prev => prev + 1);
+      }
+      
+      setHasMore((data.stores || []).length >= 10);
+    } catch (error) {
+      toast.error('Failed to load stores. Please try again.');
+      console.error('Error fetching stores:', error);
+    } finally {
+      setIsFetching(false);
+      setLoading(false);
+    }
+  }, [filter, page, searchQuery, isFetching]);
+
+  // Initial load and when filter/search changes
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchStores(true);
+  }, [filter, searchQuery]);
+
+  // Handle search input with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // Approve a store
-  const approveStore = (storeId) => {
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
+  const approveStore = async (storeId) => {
+    try {
+      setLoading(true);
+      await axios.put(`/stores/${storeId}/approve`);
       setStores(stores.map(store => 
         store._id === storeId ? { ...store, approved: true, isBlocked: false } : store
       ));
-      setNotification({
-        type: 'success',
-        message: 'Store approved successfully!'
-      });
+      toast.success('Store approved successfully!');
+      setSelectedStore(null);
+    } catch (error) {
+      toast.error('Failed to approve store. Please try again.');
+      console.error('Approval error:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   // Reject a store
-  const rejectStore = () => {
+  const rejectStore = async () => {
     if (!selectedStore) return;
     
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      await axios.put(`/stores/${selectedStore._id}/reject`, { rejectionReason });
       setStores(stores.map(store => 
         store._id === selectedStore._id ? { 
           ...store, 
@@ -233,48 +230,54 @@ const AdminStoreApproval = () => {
           rejectionReason 
         } : store
       ));
-      setNotification({
-        type: 'success',
-        message: 'Store rejected successfully!'
-      });
+      toast.success('Store rejected successfully!');
       setRejectModalOpen(false);
       setRejectionReason('');
+      setSelectedStore(null);
+    } catch (error) {
+      toast.error('Failed to reject store. Please try again.');
+      console.error('Rejection error:', error);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   // Block a store
-  const blockStore = (storeId) => {
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
+  const blockStore = async (storeId) => {
+    try {
+      setLoading(true);
+      await axios.put(`/stores/${storeId}/block`);
       setStores(stores.map(store => 
         store._id === storeId ? { ...store, isBlocked: true } : store
       ));
-      setNotification({
-        type: 'success',
-        message: 'Store blocked successfully!'
-      });
-      setLoading(false);
+      toast.success('Store blocked successfully!');
       setAnchorEl(null);
-    }, 500);
+      setSelectedStoreForMenu(null);
+    } catch (error) {
+      toast.error('Failed to block store. Please try again.');
+      console.error('Block error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Unblock a store
-  const unblockStore = (storeId) => {
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
+  const unblockStore = async (storeId) => {
+    try {
+      setLoading(true);
+      await axios.put(`/stores/${storeId}/unblock`);
       setStores(stores.map(store => 
         store._id === storeId ? { ...store, isBlocked: false } : store
       ));
-      setNotification({
-        type: 'success',
-        message: 'Store unblocked successfully!'
-      });
-      setLoading(false);
+      toast.success('Store unblocked successfully!');
       setAnchorEl(null);
-    }, 500);
+      setSelectedStoreForMenu(null);
+    } catch (error) {
+      toast.error('Failed to unblock store. Please try again.');
+      console.error('Unblock error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle filter change
@@ -316,11 +319,6 @@ const AdminStoreApproval = () => {
     );
   };
 
-  // Close notification
-  const handleCloseNotification = () => {
-    setNotification(null);
-  };
-
   // Open document viewer
   const openDocumentViewer = (url, title) => {
     setDocumentViewer({
@@ -344,54 +342,60 @@ const AdminStoreApproval = () => {
 
   return (
     <div className="p-4">
-      {/* Notification Alert */}
-      {notification && (
-        <Alert 
-          severity={notification.type} 
-          onClose={handleCloseNotification}
-          sx={{ mb: 2 }}
-          icon={notification.type === 'success' ? <Check size={20} /> : <AlertCircle size={20} />}
-        >
-          {notification.message}
-        </Alert>
-      )}
-
       {/* Header and Filter Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
           Store Approvals
         </Typography>
-        <ToggleButtonGroup
-          value={filter}
-          exclusive
-          onChange={handleFilterChange}
-          aria-label="store filter"
-          size="small"
-        >
-          <ToggleButton value="pending" aria-label="pending">
-            Pending
-          </ToggleButton>
-          <ToggleButton value="approved" aria-label="approved">
-            Approved
-          </ToggleButton>
-          <ToggleButton value="blocked" aria-label="blocked">
-            Blocked
-          </ToggleButton>
-          <ToggleButton value="all" aria-label="all">
-            All
-          </ToggleButton>
-        </ToggleButtonGroup>
+        
+        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <TextField
+            size="small"
+            placeholder="Search stores..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ minWidth: 200 }}
+          />
+          
+          <ToggleButtonGroup
+            value={filter}
+            exclusive
+            onChange={handleFilterChange}
+            aria-label="store filter"
+            size="small"
+          >
+            <ToggleButton value="pending" aria-label="pending">
+              Pending
+            </ToggleButton>
+            <ToggleButton value="approved" aria-label="approved">
+              Approved
+            </ToggleButton>
+            <ToggleButton value="blocked" aria-label="blocked">
+              Blocked
+            </ToggleButton>
+            <ToggleButton value="all" aria-label="all">
+              All Stores
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </div>
       </div>
 
       {/* Loading State */}
-      {loading && (
+      {loading && stores.length === 0 && (
         <div className="flex justify-center items-center h-64">
           <CircularProgress />
         </div>
       )}
 
       {/* Empty State */}
-      {!loading && filteredStores.length === 0 && (
+      {!loading && stores.length === 0 && (
         <div className="flex flex-col items-center justify-center h-64 text-gray-500">
           <Store size={48} className="mb-4" />
           <Typography variant="h6">No stores found</Typography>
@@ -399,97 +403,113 @@ const AdminStoreApproval = () => {
         </div>
       )}
 
-      {/* Store Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredStores.map((store) => (
-          <Card key={store._id} variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CardContent sx={{ flexGrow: 1 }}>
-              <div className="flex justify-between items-start mb-2">
-                <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                  {store.storeName}
-                </Typography>
-                <StatusChip approved={store.approved} isBlocked={store.isBlocked} />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-gray-600">
-                  <User size={16} className="mr-2" />
-                  <span>{store.ownerName}</span>
+      {/* Store Cards Grid with Infinite Scroll */}
+      <InfiniteScroll
+        dataLength={stores.length}
+        next={fetchStores}
+        hasMore={hasMore && !isFetching}
+        loader={
+          <div className="flex justify-center my-4">
+            <CircularProgress size={24} />
+          </div>
+        }
+        endMessage={
+          <p className="text-center text-gray-500 my-4">
+            {stores.length > 0 ? "You've seen all stores" : ""}
+          </p>
+        }
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stores.map((store) => (
+            <Card key={store._id} variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
+                <div className="flex justify-between items-start mb-2">
+                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                    {store.storeName}
+                  </Typography>
+                  <StatusChip approved={store.approved} isBlocked={store.isBlocked} />
                 </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin size={16} className="mr-2" />
-                  <span>{store.city}, {store.state}</span>
-                </div>
-                
-                <div className="flex items-center text-sm text-gray-600">
-                  <Mail size={16} className="mr-2" />
-                  <span className="truncate">{store.email}</span>
-                </div>
-                
-                {store.gstNumber && (
+                <div className="space-y-2">
                   <div className="flex items-center text-sm text-gray-600">
-                    <FileDigit size={16} className="mr-2" />
-                    <span className="truncate">GST: {store.gstNumber}</span>
+                    <User size={16} className="mr-2" />
+                    <span>{store.ownerName}</span>
                   </div>
-                )}
-              </div>
-            </CardContent>
-            
-            <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
-              <Button 
-                size="small" 
-                startIcon={<Eye size={18} />}
-                onClick={() => setSelectedStore(store)}
-                sx={{ textTransform: 'none' }}
-              >
-                Details
-              </Button>
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin size={16} className="mr-2" />
+                    <span>{store.city}, {store.state}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Mail size={16} className="mr-2" />
+                    <span className="truncate">{store.email}</span>
+                  </div>
+                  
+                  {store.gstNumber && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <FileDigit size={16} className="mr-2" />
+                      <span className="truncate">GST: {store.gstNumber}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
               
-              <div className="flex space-x-2">
-                {!store.approved && (
-                  <>
-                    <Button
+              <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+                <Button 
+                  size="small" 
+                  startIcon={<Eye size={18} />}
+                  onClick={() => setSelectedStore(store)}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Details
+                </Button>
+                
+                <div className="flex space-x-2">
+                  {!store.approved && !store.isBlocked && (
+                    <>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        startIcon={<Check size={18} />}
+                        onClick={() => approveStore(store._id)}
+                        sx={{ textTransform: 'none' }}
+                        disabled={loading}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        startIcon={<X size={18} />}
+                        onClick={() => {
+                          setSelectedStore(store);
+                          setRejectModalOpen(true);
+                        }}
+                        sx={{ textTransform: 'none' }}
+                        disabled={loading}
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                  {(store.approved || store.isBlocked) && (
+                    <IconButton
                       size="small"
-                      variant="contained"
-                      color="success"
-                      startIcon={<Check size={18} />}
-                      onClick={() => approveStore(store._id)}
-                      sx={{ textTransform: 'none' }}
+                      onClick={(e) => handleMenuOpen(e, store)}
                       disabled={loading}
                     >
-                      Approve
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      startIcon={<X size={18} />}
-                      onClick={() => {
-                        setSelectedStore(store);
-                        setRejectModalOpen(true);
-                      }}
-                      sx={{ textTransform: 'none' }}
-                      disabled={loading}
-                    >
-                      Reject
-                    </Button>
-                  </>
-                )}
-                {store.approved && (
-                  <IconButton
-                    size="small"
-                    onClick={(e) => handleMenuOpen(e, store)}
-                    disabled={loading}
-                  >
-                    <MoreVertical size={18} />
-                  </IconButton>
-                )}
-              </div>
-            </CardActions>
-          </Card>
-        ))}
-      </div>
+                      <MoreVertical size={18} />
+                    </IconButton>
+                  )}
+                </div>
+              </CardActions>
+            </Card>
+          ))}
+        </div>
+      </InfiniteScroll>
 
       {/* Store Actions Menu */}
       <Menu
@@ -673,7 +693,7 @@ const AdminStoreApproval = () => {
                 >
                   Close
                 </Button>
-                {!selectedStore.approved && (
+                {!selectedStore.approved && !selectedStore.isBlocked && (
                   <>
                     <Button
                       variant="contained"
@@ -699,7 +719,7 @@ const AdminStoreApproval = () => {
                     </Button>
                   </>
                 )}
-                {selectedStore.approved && (
+                {(selectedStore.approved || selectedStore.isBlocked) && (
                   <Button
                     variant="contained"
                     color={selectedStore.isBlocked ? 'success' : 'error'}

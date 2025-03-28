@@ -1,16 +1,20 @@
-import express from 'express';
-import {
-  getStoresForAdmin,
-  updateStoreStatus
-} from '../controllers/storeController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
-
+const express = require('express');
 const router = express.Router();
+const storeController = require('../controllers/store.controller');
 
-router.route('/admin')
-  .get(protect, admin, getStoresForAdmin);
+// Get stores with optional filtering
+router.get('/', storeController.getStores);
 
-router.route('/:id/status')
-  .patch(protect, admin, updateStoreStatus);
+// Approve a store
+router.put('/:id/approve', storeController.approveStore);
 
-export default router;
+// Reject a store
+router.put('/:id/reject', storeController.rejectStore);
+
+// Block a store
+router.put('/:id/block', storeController.blockStore);
+
+// Unblock a store
+router.put('/:id/unblock', storeController.unblockStore);
+
+module.exports = router;

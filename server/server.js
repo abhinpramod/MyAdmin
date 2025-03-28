@@ -6,6 +6,7 @@ const admincontrol = require("./routes/adminroutes")
 const contractorcontrol = require("./routes/contractorcontrol")
 const Usercontrol = require("./routes/usercontrol.routes")
 const settingscontrol = require("./routes/settings.routes")
+const storecontol = require("./routes/store.routes")
 dotenv.config();
 const cors = require("cors");
 const CookieParser = require("cookie-parser");
@@ -18,6 +19,7 @@ app.use('/api/admin',admincontrol)
 app.use('/api/contractor',contractorcontrol)
 app.use('/api/user',Usercontrol)
 app.use('/api/settings',settingscontrol)
+app.use('/api/stores',storecontol)
 connectDB()
   .then(() => {
     const PORT = process.env.PORT || 3000;
