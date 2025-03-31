@@ -144,16 +144,16 @@ const AdminStoreApproval = () => {
   // Filter stores based on current filter
   const filteredStores = stores.filter(store => {
     if (filter === 'pending') {
-      return !store.approved && !store.isBlocked && !store.rejectionReason;
+      return store.approvelstatus === 'Pending' && !store.isBlocked;
     }
     if (filter === 'approved') {
-      return store.approved && !store.isBlocked;
+      return store.approvelstatus === 'Approved' && !store.isBlocked;
     }
     if (filter === 'blocked') {
       return store.isBlocked;
     }
     if (filter === 'rejected') {
-      return !store.approved && store.rejectionReason;
+      return store.approvelstatus === 'Rejected';
     }
     return true; // 'all' filter
   });
@@ -220,7 +220,12 @@ const AdminStoreApproval = () => {
       setLoading(true);
       await axios.put(`/stores/${storeId}/approve`);
       setStores(stores.map(store => 
-        store._id === storeId ? { ...store, approved: true, isBlocked: false } : store
+        store._id === storeId ? { 
+          ...store, 
+          approvelstatus: 'Approved', 
+          isBlocked: false, 
+          rejectionReason: null 
+        } : store
       ));
       toast.success('Store approved successfully!');
       setSelectedStore(null);
@@ -243,7 +248,7 @@ const AdminStoreApproval = () => {
       setStores(stores.map(store => 
         store._id === selectedStore._id ? { 
           ...store, 
-          approved: false, 
+          approvelstatus: 'Rejected',
           isBlocked: false,
           rejectionReason 
         } : store
@@ -311,7 +316,7 @@ const AdminStoreApproval = () => {
   };
 
   // Status chip component
-  const StatusChip = ({ approved, isBlocked, rejectionReason }) => {
+  const StatusChip = ({ approvelstatus, isBlocked }) => {
     if (isBlocked) {
       return (
         <Chip 
@@ -323,7 +328,7 @@ const AdminStoreApproval = () => {
         />
       );
     }
-    if (rejectionReason) {
+    if (approvelstatus === 'Rejected') {
       return (
         <Chip 
           icon={<X size={16} />} 
@@ -334,15 +339,18 @@ const AdminStoreApproval = () => {
         />
       );
     }
-    return approved ? (
-      <Chip 
-        icon={<ShieldCheck size={16} />} 
-        label="Approved" 
-        color="success" 
-        variant="outlined" 
-        size="small" 
-      />
-    ) : (
+    if (approvelstatus === 'Approved') {
+      return (
+        <Chip 
+          icon={<ShieldCheck size={16} />} 
+          label="Approved" 
+          color="success" 
+          variant="outlined" 
+          size="small" 
+        />
+      );
+    }
+    return (
       <Chip 
         icon={<FileText size={16} />} 
         label="Pending" 
@@ -465,9 +473,8 @@ const AdminStoreApproval = () => {
                     {store.storeName}
                   </Typography>
                   <StatusChip 
-                    approved={store.approved} 
+                    approvelstatus={store.approvelstatus} 
                     isBlocked={store.isBlocked} 
-                    rejectionReason={store.rejectionReason} 
                   />
                 </div>
                 
@@ -507,7 +514,7 @@ const AdminStoreApproval = () => {
                 </Button>
                 
                 <div className="flex space-x-2">
-                  {!store.approved && !store.isBlocked && !store.rejectionReason && (
+                  {store.approvelstatus === 'Pending' && !store.isBlocked && (
                     <>
                       <Button
                         size="small"
@@ -536,7 +543,7 @@ const AdminStoreApproval = () => {
                       </Button>
                     </>
                   )}
-                  {(store.approved || store.isBlocked || store.rejectionReason) && (
+                  {(store.approvelstatus === 'Approved' || store.approvelstatus === 'Rejected' || store.isBlocked) && (
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuOpen(e, store)}
@@ -595,9 +602,8 @@ const AdminStoreApproval = () => {
                   {selectedStore.storeName}
                 </Typography>
                 <StatusChip 
-                  approved={selectedStore.approved} 
+                  approvelstatus={selectedStore.approvelstatus} 
                   isBlocked={selectedStore.isBlocked} 
-                  rejectionReason={selectedStore.rejectionReason} 
                 />
               </div>
               
@@ -738,7 +744,7 @@ const AdminStoreApproval = () => {
                 >
                   Close
                 </Button>
-                {!selectedStore.approved && !selectedStore.isBlocked && !selectedStore.rejectionReason && (
+                {selectedStore.approvelstatus === 'Pending' && !selectedStore.isBlocked && (
                   <>
                     <Button
                       variant="contained"
@@ -764,7 +770,7 @@ const AdminStoreApproval = () => {
                     </Button>
                   </>
                 )}
-                {(selectedStore.approved || selectedStore.isBlocked || selectedStore.rejectionReason) && (
+                {(selectedStore.approvelstatus === 'Approved' || selectedStore.approvelstatus === 'Rejected' || selectedStore.isBlocked) && (
                   <Button
                     variant="contained"
                     color={selectedStore.isBlocked ? 'success' : 'error'}

@@ -13,10 +13,10 @@ exports.getStores = async (req, res) => {
     // Apply status filter if not 'all'
     if (filter && filter !== 'all') {
       if (filter === 'pending') {
-        query.approved = false;
+        query.approvelstatus = 'Pending';
         query.isBlocked = false;
       } else if (filter === 'approved') {
-        query.approved = true;
+        query.approvelstatus = 'Approved';
         query.isBlocked = false;
       } else if (filter === 'blocked') {
         query.isBlocked = true;
@@ -31,7 +31,12 @@ exports.getStores = async (req, res) => {
         { ownerName: searchRegex },
         { email: searchRegex },
         { city: searchRegex },
-        { state: searchRegex }
+        { state: searchRegex },
+        { country: searchRegex },
+        { address: searchRegex },
+        { phone: searchRegex },
+        { gstNumber: searchRegex }
+      
       ];
     }
 
@@ -60,7 +65,7 @@ exports.approveStore = async (req, res) => {
   try {
     const store = await Store.findByIdAndUpdate(
       req.params.id,
-      { approved: true, isBlocked: false, rejectionReason: null },
+      { approvelstatus : "Approved", isBlocked: false, rejectionReason: null },
       { new: true }
     );
 
@@ -83,7 +88,7 @@ exports.rejectStore = async (req, res) => {
     
     const store = await Store.findByIdAndUpdate(
       req.params.id,
-      { approved: false, isBlocked: false, rejectionReason },
+      { approvelstatus : "Rejected", isBlocked: false, rejectionReason },
       { new: true }
     );
 
