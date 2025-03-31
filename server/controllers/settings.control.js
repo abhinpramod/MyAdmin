@@ -10,10 +10,12 @@ const getAllJobTypes = async (req, res) => {
       const searchTerm = req.query.search || '';
       const skip = (page - 1) * limit;
   
+      // Build search query
       const query = searchTerm 
         ? { name: { $regex: searchTerm, $options: 'i' } } 
         : {};
   
+      // Execute queries in parallel
       const [jobTypes, totalCount] = await Promise.all([
         Jobtypes.find(query)
           .skip(skip)
@@ -25,15 +27,21 @@ const getAllJobTypes = async (req, res) => {
       const hasMore = skip + limit < totalCount;
   
       res.json({
+        success: true,
         data: jobTypes,
-        currentPage: page,
-        totalPages: Math.ceil(totalCount / limit),
-        totalItems: totalCount,
-        hasMore
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalItems: totalCount,
+          hasMore
+        }
       });
     } catch (error) {
       console.error('Error fetching job types:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ 
+        success: false,
+        message: 'Server error while fetching job types'
+      });
     }
   };
 
@@ -160,10 +168,12 @@ const getAllProductTypes = async (req, res) => {
       const searchTerm = req.query.search || '';
       const skip = (page - 1) * limit;
   
+      // Build search query
       const query = searchTerm 
         ? { name: { $regex: searchTerm, $options: 'i' } } 
         : {};
   
+      // Execute queries in parallel
       const [productTypes, totalCount] = await Promise.all([
         ProductType.find(query)
           .skip(skip)
@@ -175,15 +185,21 @@ const getAllProductTypes = async (req, res) => {
       const hasMore = skip + limit < totalCount;
   
       res.json({
+        success: true,
         data: productTypes,
-        currentPage: page,
-        totalPages: Math.ceil(totalCount / limit),
-        totalItems: totalCount,
-        hasMore
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalItems: totalCount,
+          hasMore
+        }
       });
     } catch (error) {
       console.error('Error fetching product types:', error);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ 
+        success: false,
+        message: 'Server error while fetching product types'
+      });
     }
   };
 

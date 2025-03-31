@@ -27,6 +27,23 @@ import toast from 'react-hot-toast';
 import axiosInstance from '../lib/aixos';
 import InfiniteScroll from 'react-infinite-scroll-component';
 
+// Custom debounce hook
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -112,11 +129,28 @@ const JobTypeForm = ({ onAddJobType }) => {
   );
 };
 
-const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate, fetchMoreData, hasMore }) => {
+const JobTypeTable = ({ 
+  jobTypes, 
+  onEdit, 
+  onDelete, 
+  onUpdate, 
+  fetchMoreData, 
+  hasMore,
+  searchTerm,
+  setSearchTerm
+}) => {
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    if (debouncedSearchTerm !== '') {
+      fetchMoreData(1, true, debouncedSearchTerm);
+    } else if (searchTerm === '') {
+      fetchMoreData(1, true, '');
+    }
+  }, [debouncedSearchTerm]);
 
   const handleEdit = (id, name) => {
     setEditingId(id);
@@ -127,10 +161,6 @@ const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate, fetchMoreData, has
     setEditingId(null);
     setSelectedImage(null);
   };
-
-  const filteredJobTypes = jobTypes.filter(job =>
-    job.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0' }}>
@@ -150,9 +180,13 @@ const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate, fetchMoreData, has
         }}
       />
       <InfiniteScroll
-        dataLength={filteredJobTypes.length}
-        next={fetchMoreData}
-        hasMore={hasMore}
+        dataLength={jobTypes.length}
+        next={() => {
+          if (searchTerm === '') {
+            fetchMoreData(null, false, '');
+          }
+        }}
+        hasMore={hasMore && searchTerm === ''}
         loader={
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <CircularProgress size={24} />
@@ -160,7 +194,8 @@ const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate, fetchMoreData, has
         }
         endMessage={
           <Typography variant="body2" align="center" sx={{ p: 2 }}>
-            {filteredJobTypes.length === 0 ? 'No job types found' : 'No more job types to load'}
+            {jobTypes.length === 0 ? 'No job types found' : 
+             searchTerm ? 'End of search results' : 'No more job types to load'}
           </Typography>
         }
         height={500}
@@ -174,7 +209,7 @@ const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate, fetchMoreData, has
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredJobTypes.map((job) => (
+            {jobTypes.map((job) => (
               <TableRow key={job._id} hover>
                 <TableCell>
                   {editingId === job._id ? (
@@ -323,11 +358,28 @@ const ProductTypeForm = ({ onAddProductType }) => {
   );
 };
 
-const ProductTypeTable = ({ productTypes, onEdit, onDelete, onUpdate, fetchMoreData, hasMore }) => {
+const ProductTypeTable = ({ 
+  productTypes, 
+  onEdit, 
+  onDelete, 
+  onUpdate, 
+  fetchMoreData, 
+  hasMore,
+  searchTerm,
+  setSearchTerm
+}) => {
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    if (debouncedSearchTerm !== '') {
+      fetchMoreData(1, true, debouncedSearchTerm);
+    } else if (searchTerm === '') {
+      fetchMoreData(1, true, '');
+    }
+  }, [debouncedSearchTerm]);
 
   const handleEdit = (id, name) => {
     setEditingId(id);
@@ -338,10 +390,6 @@ const ProductTypeTable = ({ productTypes, onEdit, onDelete, onUpdate, fetchMoreD
     setEditingId(null);
     setSelectedImage(null);
   };
-
-  const filteredProductTypes = productTypes.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0' }}>
@@ -361,9 +409,13 @@ const ProductTypeTable = ({ productTypes, onEdit, onDelete, onUpdate, fetchMoreD
         }}
       />
       <InfiniteScroll
-        dataLength={filteredProductTypes.length}
-        next={fetchMoreData}
-        hasMore={hasMore}
+        dataLength={productTypes.length}
+        next={() => {
+          if (searchTerm === '') {
+            fetchMoreData(null, false, '');
+          }
+        }}
+        hasMore={hasMore && searchTerm === ''}
         loader={
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <CircularProgress size={24} />
@@ -371,7 +423,8 @@ const ProductTypeTable = ({ productTypes, onEdit, onDelete, onUpdate, fetchMoreD
         }
         endMessage={
           <Typography variant="body2" align="center" sx={{ p: 2 }}>
-            {filteredProductTypes.length === 0 ? 'No product types found' : 'No more product types to load'}
+            {productTypes.length === 0 ? 'No product types found' : 
+             searchTerm ? 'End of search results' : 'No more product types to load'}
           </Typography>
         }
         height={500}
@@ -385,7 +438,7 @@ const ProductTypeTable = ({ productTypes, onEdit, onDelete, onUpdate, fetchMoreD
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredProductTypes.map((product) => (
+            {productTypes.map((product) => (
               <TableRow key={product._id} hover>
                 <TableCell>
                   {editingId === product._id ? (
@@ -523,27 +576,44 @@ const SettingsPage = () => {
   const [productTypePage, setProductTypePage] = useState(1);
   const [hasMoreJobTypes, setHasMoreJobTypes] = useState(true);
   const [hasMoreProductTypes, setHasMoreProductTypes] = useState(true);
+  
+  // Search state
+  const [jobTypeSearchTerm, setJobTypeSearchTerm] = useState('');
+  const [productTypeSearchTerm, setProductTypeSearchTerm] = useState('');
 
+  // Add the missing handleTabChange function
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    // Reset search terms when changing tabs
+    setJobTypeSearchTerm('');
+    setProductTypeSearchTerm('');
   };
 
-  const fetchJobTypes = async (page = 1, initialLoad = false) => {
+  const fetchJobTypes = async (page = 1, initialLoad = false, searchTerm = '') => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.get(`/settings/get-all-job-types?page=${page}&limit=10`);
-      const newData = Array.isArray(response.data) ? response.data : [];
+      const response = await axiosInstance.get(
+        `/settings/get-all-job-types`,
+        {
+          params: {
+            page,
+            limit: 10,
+            search: searchTerm
+          }
+        }
+      );
       
-      if (initialLoad) {
+      const newData = Array.isArray(response.data.data) ? response.data.data : [];
+      
+      if (initialLoad || searchTerm !== '') {
         setJobTypes(newData);
+        setJobTypePage(2);
       } else {
         setJobTypes(prev => [...prev, ...newData]);
+        setJobTypePage(prev => prev + 1);
       }
       
-      setHasMoreJobTypes(newData.length > 0);
-      if (newData.length > 0) {
-        setJobTypePage(page + 1);
-      }
+      setHasMoreJobTypes(response.data.pagination?.hasMore || false);
     } catch (error) {
       console.error('Error fetching job types:', error);
       toast.error('Failed to fetch job types');
@@ -554,22 +624,31 @@ const SettingsPage = () => {
     }
   };
 
-  const fetchProductTypes = async (page = 1, initialLoad = false) => {
+  const fetchProductTypes = async (page = 1, initialLoad = false, searchTerm = '') => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.get(`/settings/get-all-product-types?page=${page}&limit=10`);
-      const newData = Array.isArray(response.data) ? response.data : [];
+      const response = await axiosInstance.get(
+        `/settings/get-all-product-types`,
+        {
+          params: {
+            page,
+            limit: 10,
+            search: searchTerm
+          }
+        }
+      );
       
-      if (initialLoad) {
+      const newData = Array.isArray(response.data.data) ? response.data.data : [];
+      
+      if (initialLoad || searchTerm !== '') {
         setProductTypes(newData);
+        setProductTypePage(2);
       } else {
         setProductTypes(prev => [...prev, ...newData]);
+        setProductTypePage(prev => prev + 1);
       }
       
-      setHasMoreProductTypes(newData.length > 0);
-      if (newData.length > 0) {
-        setProductTypePage(page + 1);
-      }
+      setHasMoreProductTypes(response.data.pagination?.hasMore || false);
     } catch (error) {
       console.error('Error fetching product types:', error);
       toast.error('Failed to fetch product types');
@@ -580,15 +659,17 @@ const SettingsPage = () => {
     }
   };
 
-  const loadMoreJobTypes = () => {
-    if (!isLoading && hasMoreJobTypes) {
-      fetchJobTypes(jobTypePage);
+  const loadMoreJobTypes = (page = null, initialLoad = false, searchTerm = '') => {
+    if (!isLoading && (hasMoreJobTypes || initialLoad)) {
+      const nextPage = page || jobTypePage;
+      fetchJobTypes(nextPage, initialLoad, searchTerm);
     }
   };
 
-  const loadMoreProductTypes = () => {
-    if (!isLoading && hasMoreProductTypes) {
-      fetchProductTypes(productTypePage);
+  const loadMoreProductTypes = (page = null, initialLoad = false, searchTerm = '') => {
+    if (!isLoading && (hasMoreProductTypes || initialLoad)) {
+      const nextPage = page || productTypePage;
+      fetchProductTypes(nextPage, initialLoad, searchTerm);
     }
   };
 
@@ -603,7 +684,7 @@ const SettingsPage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success('Job type added successfully');
-      fetchJobTypes(1, true); // Reset to first page after adding new item
+      loadMoreJobTypes(1, true, jobTypeSearchTerm);
     } catch (error) {
       console.error('Error adding job type:', error);
       toast.error('Failed to add job type');
@@ -623,7 +704,7 @@ const SettingsPage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success('Product type added successfully');
-      fetchProductTypes(1, true); // Reset to first page after adding new item
+      loadMoreProductTypes(1, true, productTypeSearchTerm);
     } catch (error) {
       console.error('Error adding product type:', error);
       toast.error('Failed to add product type');
@@ -647,7 +728,9 @@ const SettingsPage = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success(`${tabValue === 0 ? 'Job' : 'Product'} type updated successfully`);
-      tabValue === 0 ? fetchJobTypes(1, true) : fetchProductTypes(1, true); // Refresh data
+      tabValue === 0 
+        ? loadMoreJobTypes(1, true, jobTypeSearchTerm) 
+        : loadMoreProductTypes(1, true, productTypeSearchTerm);
     } catch (error) {
       console.error(`Error updating ${tabValue === 0 ? 'job' : 'product'} type:`, error);
       toast.error(`Failed to update ${tabValue === 0 ? 'job' : 'product'} type`);
@@ -665,7 +748,9 @@ const SettingsPage = () => {
       setIsLoading(true);
       await axiosInstance.delete(endpoint);
       toast.success(`${tabValue === 0 ? 'Job' : 'Product'} type deleted successfully`);
-      tabValue === 0 ? fetchJobTypes(1, true) : fetchProductTypes(1, true); // Refresh data
+      tabValue === 0 
+        ? loadMoreJobTypes(1, true, jobTypeSearchTerm) 
+        : loadMoreProductTypes(1, true, productTypeSearchTerm);
     } catch (error) {
       console.error(`Error deleting ${tabValue === 0 ? 'job' : 'product'} type:`, error);
       toast.error(`Failed to delete ${tabValue === 0 ? 'job' : 'product'} type`);
@@ -692,8 +777,8 @@ const SettingsPage = () => {
   };
 
   useEffect(() => {
-    fetchJobTypes(1, true);
-    fetchProductTypes(1, true);
+    loadMoreJobTypes(1, true);
+    loadMoreProductTypes(1, true);
   }, []);
 
   if (isLoading && jobTypes.length === 0 && productTypes.length === 0) {
@@ -713,7 +798,11 @@ const SettingsPage = () => {
         
         <Box sx={{ width: '100%' }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={tabValue} onChange={handleTabChange} aria-label="settings tabs">
+            <Tabs 
+              value={tabValue} 
+              onChange={handleTabChange}
+              aria-label="settings tabs"
+            >
               <Tab label="Manage Job Types" {...a11yProps(0)} />
               <Tab label="Manage Product Types" {...a11yProps(1)} />
             </Tabs>
@@ -727,7 +816,9 @@ const SettingsPage = () => {
               onDelete={(id) => openConfirmationDialog('delete', id)}
               onUpdate={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
               fetchMoreData={loadMoreJobTypes}
-              hasMore={hasMoreJobTypes}
+              hasMore={hasMoreJobTypes && jobTypeSearchTerm === ''}
+              searchTerm={jobTypeSearchTerm}
+              setSearchTerm={setJobTypeSearchTerm}
             />
           </TabPanel>
           
@@ -739,7 +830,9 @@ const SettingsPage = () => {
               onDelete={(id) => openConfirmationDialog('delete', id)}
               onUpdate={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
               fetchMoreData={loadMoreProductTypes}
-              hasMore={hasMoreProductTypes}
+              hasMore={hasMoreProductTypes && productTypeSearchTerm === ''}
+              searchTerm={productTypeSearchTerm}
+              setSearchTerm={setProductTypeSearchTerm}
             />
           </TabPanel>
         </Box>
