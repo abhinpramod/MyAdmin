@@ -324,7 +324,8 @@ const AdminStoreApproval = () => {
             <StoreCard
               key={store._id}
               store={store}
-              onViewDetails={setProfileViewStoreId}
+              onCardClick={setProfileViewStoreId}
+              onViewDetails={setSelectedStore}
               onApprove={approveStore}
               onReject={(store) => {
                 setSelectedStore(store);

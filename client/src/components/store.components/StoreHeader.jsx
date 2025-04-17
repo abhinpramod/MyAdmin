@@ -1,4 +1,5 @@
 // components/store/StoreHeader.jsx
+import React from "react";
 import { Avatar, Box, Button, Chip, IconButton, Typography } from "@mui/material";
 import { Camera, Edit, Save } from "lucide-react";
 import { useState } from "react";

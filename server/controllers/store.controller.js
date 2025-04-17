@@ -1,5 +1,6 @@
 const sendEmail = require('../lib/mailer');
 const Store = require('../model/store.model');
+const Product = require('../model/products.model');
 
 // Get all stores with optional filtering
 exports.getStores = async (req, res) => {
@@ -146,4 +147,33 @@ exports.unblockStore = async (req, res) => {
     console.error('Error unblocking store:', error);
     res.status(500).json({ message: 'Server error' });
   }
+};
+
+exports.getStoreById = async (req, res) => {
+  try {
+    const store = await Store.findById(req.params.id);
+    if (!store) {
+      return res.status(404).json({ message: 'Store not found' });
+    }
+    res.json(store);
+  } catch (error) {
+    console.error('Error fetching store by ID:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getProductsByStoreId = async (req, res) => {try {
+  console.log("this is id",req.params.id);
+  
+  const product = await Product.find({storeId:req.params.id})
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    console.log(product);
+    res.json(product);
+  
+}catch (error) {
+  console.error('Error fetching products by store ID:', error);
+  res.status(500).json({ message: 'Server error' });
+}
 };

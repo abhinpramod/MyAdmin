@@ -30,12 +30,13 @@ const AdminStoreProfile = ({ storeId, onClose }) => {
         setLoading(true);
         
         // Fetch store data
-        const storeResponse = await axios.get(`/store/store/${storeId}`);
+        const storeResponse = await axios.get(`/stores/${storeId}`);
         setStoreData(storeResponse.data);
 
         // Fetch products
-        const productsResponse = await axios.get(`/store/${storeId}/products`);
-        setProducts(productsResponse.data.products || []);
+        const productsResponse = await axios.get(`/stores/${storeId}/products`);
+        console.log(productsResponse.data);
+        setProducts(productsResponse.data || []);
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to fetch data');
       } finally {

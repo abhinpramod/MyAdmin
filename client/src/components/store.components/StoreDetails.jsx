@@ -1,4 +1,4 @@
-// components/store/StoreDetails.jsx
+import React from "react";
 import { Box, Typography } from "@mui/material";
 
 const StoreDetails = ({ storeData }) => {

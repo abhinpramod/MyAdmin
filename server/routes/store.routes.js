@@ -10,6 +10,10 @@ router.get('/', storeController.getStores);
 // Approve a store
 router.put('/:id/approve',protectRoute, storeController.approveStore);
 
+router.get('/:id/products',protectRoute, storeController.getProductsByStoreId);
+
+router.get('/:id',protectRoute, storeController.getStoreById);
+
 // Reject a store
 router.put('/:id/reject',protectRoute, storeController.rejectStore);
 

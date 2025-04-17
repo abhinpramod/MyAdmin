@@ -7,19 +7,52 @@ import {
   Typography,
   IconButton
 } from '@mui/material';
-import { Eye, MoreVertical,User,MapPin,Mail,Phone,Store,FileDigit,Calendar,FileText,AlertCircle,Check,X,Lock,Unlock  } from 'lucide-react';
+import { Eye, MoreVertical, User, MapPin, Mail, FileDigit, Check, X } from 'lucide-react';
 import StatusChip from './StatusChip';
 
 const StoreCard = ({ 
   store, 
+  onCardClick,       // New prop for card click
   onViewDetails, 
   onApprove, 
   onReject, 
   onMenuOpen,
   loading 
 }) => {
+  const handleDetailsClick = (e) => {
+    e.stopPropagation();
+    onViewDetails(store);
+  };
+
+  const handleApproveClick = (e) => {
+    e.stopPropagation();
+    onApprove(store._id);
+  };
+
+  const handleRejectClick = (e) => {
+    e.stopPropagation();
+    onReject(store);
+  };
+
+  const handleMenuClick = (e) => {
+    e.stopPropagation();
+    onMenuOpen(e, store);
+  };
+
   return (
-    <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card 
+      variant="outlined" 
+      sx={{ 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        cursor: 'pointer',
+        '&:hover': {
+          boxShadow: 1
+        }
+      }}
+      onClick={() => onCardClick(store._id)}
+    >
       <CardContent sx={{ flexGrow: 1 }}>
         <div className="flex justify-between items-start mb-2">
           <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
@@ -56,11 +89,20 @@ const StoreCard = ({
         </div>
       </CardContent>
       
-      <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+      <CardActions 
+        sx={{ 
+          justifyContent: 'space-between', 
+          p: 2,
+          '& button': {
+            pointerEvents: 'auto' // Ensure buttons are clickable
+          }
+        }}
+        onClick={(e) => e.stopPropagation()} // Prevent card click when clicking in actions area
+      >
         <Button 
           size="small" 
           startIcon={<Eye size={18} />}
-          onClick={() => onViewDetails(store)}
+          onClick={handleDetailsClick}
           sx={{ textTransform: 'none' }}
         >
           Details
@@ -74,7 +116,7 @@ const StoreCard = ({
                 variant="contained"
                 color="success"
                 startIcon={<Check size={18} />}
-                onClick={() => onApprove(store._id)}
+                onClick={handleApproveClick}
                 sx={{ textTransform: 'none' }}
                 disabled={loading}
               >
@@ -85,7 +127,7 @@ const StoreCard = ({
                 variant="outlined"
                 color="error"
                 startIcon={<X size={18} />}
-                onClick={() => onReject(store)}
+                onClick={handleRejectClick}
                 sx={{ textTransform: 'none' }}
                 disabled={loading}
               >
@@ -96,7 +138,7 @@ const StoreCard = ({
           {(store.approvelstatus === 'Approved' || store.approvelstatus === 'Rejected' || store.isBlocked) && (
             <IconButton
               size="small"
-              onClick={(e) => onMenuOpen(e, store)}
+              onClick={handleMenuClick}
               disabled={loading}
             >
               <MoreVertical size={18} />

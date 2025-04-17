@@ -1,4 +1,5 @@
 // components/products/ProductCard.jsx
+import React from "react";
 import { Card, CardContent, CardMedia, Chip, Typography, Box } from "@mui/material";
 
 const ProductCard = ({ product, onClick }) => (
