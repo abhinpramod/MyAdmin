@@ -1,7 +1,13 @@
-// src/components/DocumentViewer.js
 import React from 'react';
-import { Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
-import { Download, X as CloseIcon } from 'lucide-react';
+import { 
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  
+  Box
+} from '@mui/material';
+import { Download, X } from 'lucide-react';
 
 const DocumentViewer = ({ open, onClose, documentUrl, title }) => {
   return (
@@ -18,7 +24,7 @@ const DocumentViewer = ({ open, onClose, documentUrl, title }) => {
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {title}
-        <div>
+        <Box>
           <IconButton 
             href={documentUrl} 
             download 
@@ -29,9 +35,9 @@ const DocumentViewer = ({ open, onClose, documentUrl, title }) => {
             <Download size={20} />
           </IconButton>
           <IconButton onClick={onClose}>
-            <CloseIcon size={20} />
+            <X size={20} />
           </IconButton>
-        </div>
+        </Box>
       </DialogTitle>
       <DialogContent sx={{ 
         display: 'flex', 
