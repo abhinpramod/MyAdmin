@@ -1,33 +1,13 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import axiosInstance from "../lib/aixos";
 import { toast } from "react-hot-toast";
-import React from "react";
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  Button,
-  Tooltip,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Box,
-  TablePagination,
-} from "@mui/material";
 import { v4 as uuid } from "uuid";
-import { Edit, Block, CheckCircle, Delete } from "@mui/icons-material";
+import { Box, Button, TablePagination } from "@mui/material";
+import AdminTable from "../components/admin/AdminTable";
+import AdminForm from "../components/admin/AdminForm";
+import AdminFilter from "../components/admin/AdminFilter";
+import { ConfirmationDialog } from "../components/admin/AdminDialogs";
 
 const ManageAdmins = () => {
   const [admins, setAdmins] = useState([]);
@@ -105,32 +85,28 @@ const ManageAdmins = () => {
   // Handle Edit Admin
   const handleEditAdmin = async () => {
     if (!selectedAdmin) return;
-
-    // Validate password if it's being changed
+    
     if (formData.password && formData.password !== formData.confirmPassword) {
       return toast.error("Passwords do not match");
     }
 
     try {
-      // Only include password in the update if it's provided
       const updateData = {
         fullname: formData.fullname,
         ...(formData.password && { password: formData.password }),
-        role: formData.role,
+        role: formData.role
       };
 
       const res = await axiosInstance.patch(
         `/admin/edit-admin/${selectedAdmin._id}`,
         updateData
       );
-
+      
       if (res.status === 200) {
         toast.success("Admin details updated successfully!");
         setAdmins(
           admins.map((admin) =>
-            admin._id === selectedAdmin._id
-              ? { ...admin, ...updateData }
-              : admin
+            admin._id === selectedAdmin._id ? { ...admin, ...updateData } : admin
           )
         );
         setOpenEditAdmin(false);
@@ -152,14 +128,10 @@ const ManageAdmins = () => {
         ? `/admin/block-admin/${selectedAdmin._id}`
         : `/admin/unblock-admin/${selectedAdmin._id}`;
       await axiosInstance.patch(endpoint, { adminId: selectedAdmin._id });
-      toast.success(
-        `Admin ${updatedStatus ? "blocked" : "unblocked"} successfully`
-      );
+      toast.success(`Admin ${updatedStatus ? "blocked" : "unblocked"} successfully`);
       setAdmins(
         admins.map((admin) =>
-          admin._id === selectedAdmin._id
-            ? { ...admin, isBlocked: updatedStatus }
-            : admin
+          admin._id === selectedAdmin._id ? { ...admin, isBlocked: updatedStatus } : admin
         )
       );
     } catch (error) {
@@ -179,7 +151,7 @@ const ManageAdmins = () => {
     try {
       await axiosInstance.delete(`/admin/delete-admin/${selectedAdmin._id}`);
       toast.success("Admin deleted successfully");
-      setAdmins(admins.filter((admin) => admin._id !== selectedAdmin._id));
+      setAdmins(admins.filter(admin => admin._id !== selectedAdmin._id));
       setOpenDeleteConfirm(false);
       setSelectedAdmin(null);
     } catch (error) {
@@ -192,13 +164,7 @@ const ManageAdmins = () => {
 
   // Reset Form
   const resetForm = () => {
-    setFormData({
-      fullname: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      role: "",
-    });
+    setFormData({ fullname: "", email: "", password: "", confirmPassword: "", role: "" });
   };
 
   // Handle Filter Change
@@ -220,10 +186,8 @@ const ManageAdmins = () => {
       (filters.status === "active" && !admin.isBlocked);
 
     const matchesDate =
-      (!filters.startDate ||
-        new Date(admin.createdAt) >= new Date(filters.startDate)) &&
-      (!filters.endDate ||
-        new Date(admin.createdAt) <= new Date(filters.endDate));
+      (!filters.startDate || new Date(admin.createdAt) >= new Date(filters.startDate)) &&
+      (!filters.endDate || new Date(admin.createdAt) <= new Date(filters.endDate));
 
     return matchesSearchTerm && matchesStatus && matchesDate;
   });
@@ -244,324 +208,101 @@ const ManageAdmins = () => {
     page * rowsPerPage + rowsPerPage
   );
 
+  // Action handlers
+  const handleEditClick = (admin) => {
+    setSelectedAdmin(admin);
+    setFormData({
+      fullname: admin.fullname,
+      email: admin.email,
+      password: "",
+      confirmPassword: "",
+      role: admin.role
+    });
+    setOpenEditAdmin(true);
+  };
+
+  const handleBlockClick = (admin) => {
+    setSelectedAdmin(admin);
+    setConfirmAction(admin.isBlocked ? "unblock" : "block");
+  };
+
+  const handleDeleteClick = (admin) => {
+    setSelectedAdmin(admin);
+    setOpenDeleteConfirm(true);
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Manage Admins</h2>
-        <Button
-          variant="contained"
-          color="primary"
+        <Button 
+          variant="contained" 
+          color="primary" 
           onClick={() => setOpenAddAdmin(true)}
         >
           Add Admin
         </Button>
       </div>
-      <Box sx={{ display: "flex", gap: 2, mb: 4 }}>
-        <TextField
-          label="Search Admins"
-          variant="outlined"
-          size="large"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ width: "100%", height: "40px" }}
-        />
-      </Box>
 
-      {/* Filter Controls */}
-      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-        {/* Status Filter */}
-        <FormControl fullWidth>
-          <InputLabel>Status</InputLabel>
-          <Select
-            name="status"
-            value={filters.status}
-            onChange={handleFilterChange}
-            label="Status"
-            sx={{ width: "20%" }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="blocked">Blocked</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-          </Select>
-        </FormControl>
+      <AdminFilter 
+        searchTerm={searchTerm} 
+        setSearchTerm={setSearchTerm}
+        filters={filters}
+        handleFilterChange={handleFilterChange}
+      />
 
-        {/* Start Date Filter */}
-        <TextField
-          name="startDate"
-          label="Start Date"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={filters.startDate}
-          onChange={handleFilterChange}
-          sx={{ width: "20%" }}
-        />
-      </Box>
+      <AdminTable 
+        loading={loading}
+        admins={paginatedAdmins}
+        onEdit={handleEditClick}
+        onBlock={handleBlockClick}
+        onDelete={handleDeleteClick}
+      />
 
-      {loading ? (
-        <div className="flex items-center justify-center h-40">
-          <CircularProgress />
-        </div>
-      ) : (
-        <>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <strong>ID</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Name</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Email</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Status</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>Actions</strong>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedAdmins.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center">
-                      No admin match for <strong>{searchTerm}</strong>
-                    </TableCell>
-                  </TableRow>
-                )}
-                {paginatedAdmins.map((admin) => (
-                  <TableRow key={admin._id}>
-                    <TableCell>{admin.uniqueId}</TableCell>
-                    <TableCell>{admin.fullname}</TableCell>
-                    <TableCell>{admin.email}</TableCell>
-                    <TableCell>
-                      {admin.isBlocked ? (
-                        <span className="text-red-500">Blocked</span>
-                      ) : (
-                        <span className="text-green-500">Active</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          onClick={() => {
-                            setSelectedAdmin(admin);
-                            setFormData({
-                              fullname: admin.fullname,
-                              email: admin.email,
-                              password: "",
-                              confirmPassword: "",
-                              role: admin.role,
-                            });
-                            setOpenEditAdmin(true);
-                          }}
-                          variant="contained"
-                          color="primary"
-                          style={{ marginRight: "8px" }}
-                        >
-                          <Edit />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={admin.isBlocked ? "Unblock" : "Block"}>
-                        <IconButton
-                          onClick={() => {
-                            setSelectedAdmin(admin);
-                            setConfirmAction(
-                              admin.isBlocked ? "unblock" : "block"
-                            );
-                          }}
-                          variant="contained"
-                          color={admin.isBlocked ? "success" : "warning"}
-                          style={{ marginRight: "8px" }}
-                        >
-                          {admin.isBlocked ? <CheckCircle /> : <Block />}
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          onClick={() => {
-                            setSelectedAdmin(admin);
-                            setOpenDeleteConfirm(true);
-                          }}
-                          variant="contained"
-                          color="error"
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={filteredAdmins.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
 
-          {/* Pagination Controls */}
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={filteredAdmins.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </>
-      )}
+      <AdminForm
+        open={openAddAdmin}
+        onClose={() => setOpenAddAdmin(false)}
+        onSubmit={handleAddAdmin}
+        formData={formData}
+        setFormData={setFormData}
+        isEdit={false}
+      />
 
-      {/* Block/Unblock Confirmation Dialog */}
-      <Dialog
+      <AdminForm
+        open={openEditAdmin}
+        onClose={() => setOpenEditAdmin(false)}
+        onSubmit={handleEditAdmin}
+        formData={formData}
+        setFormData={setFormData}
+        isEdit={true}
+      />
+
+      <ConfirmationDialog
         open={Boolean(confirmAction)}
         onClose={() => setConfirmAction(null)}
-      >
-        <DialogTitle>
-          Are you sure you want to{" "}
-          {confirmAction === "block" ? "block" : "unblock"}{" "}
-          {selectedAdmin?.fullname}?
-        </DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setConfirmAction(null)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleBlockUnblockAdmin} color="primary">
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleBlockUnblockAdmin}
+        title={`Are you sure you want to ${confirmAction === "block" ? "block" : "unblock"} ${selectedAdmin?.fullname}?`}
+      />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
+      <ConfirmationDialog
         open={openDeleteConfirm}
         onClose={() => setOpenDeleteConfirm(false)}
-      >
-        <DialogTitle>
-          Are you sure you want to delete {selectedAdmin?.fullname}?
-        </DialogTitle>
-        <DialogContent>
-          This action cannot be undone. All data associated with this admin will
-          be permanently removed.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteConfirm(false)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteAdmin} color="error">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Edit Admin Dialog */}
-      <Dialog open={openEditAdmin} onClose={() => setOpenEditAdmin(false)}>
-        <DialogTitle>Edit Admin</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Full Name"
-            fullWidth
-            margin="normal"
-            value={formData.fullname}
-            onChange={(e) =>
-              setFormData({ ...formData, fullname: e.target.value })
-            }
-          />
-
-          <TextField
-            label="Email"
-            fullWidth
-            margin="normal"
-            value={formData.email}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-
-          <TextField
-            label="New Password (leave blank to keep current)"
-            fullWidth
-            margin="normal"
-            type="password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-          />
-
-          <TextField
-            label="Confirm New Password"
-            fullWidth
-            margin="normal"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) =>
-              setFormData({ ...formData, confirmPassword: e.target.value })
-            }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenEditAdmin(false)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleEditAdmin} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Add Admin Dialog */}
-      <Dialog open={openAddAdmin} onClose={() => setOpenAddAdmin(false)}>
-        <DialogTitle>Add Admin</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Full Name"
-            fullWidth
-            margin="normal"
-            value={formData.fullname}
-            onChange={(e) =>
-              setFormData({ ...formData, fullname: e.target.value })
-            }
-          />
-          <TextField
-            label="Email"
-            fullWidth
-            margin="normal"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-          />
-          <TextField
-            label="Password"
-            fullWidth
-            margin="normal"
-            type="password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-          />
-          <TextField
-            label="Confirm Password"
-            fullWidth
-            margin="normal"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) =>
-              setFormData({ ...formData, confirmPassword: e.target.value })
-            }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenAddAdmin(false)} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleAddAdmin} color="primary">
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDeleteAdmin}
+        title={`Are you sure you want to delete ${selectedAdmin?.fullname}?`}
+        content="This action cannot be undone. All data associated with this admin will be permanently removed."
+        confirmText="Delete"
+        confirmColor="error"
+      />
     </div>
   );
 };

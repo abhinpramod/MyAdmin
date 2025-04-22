@@ -23,6 +23,6 @@ router.post("/logout",logoutAdmin)
 router.patch("/block-admin/:adminId", blockAdmin);
 router.patch("/unblock-admin/:adminId", unblockAdmin);
 router.patch('/edit-admin/:adminId',protectRoute,editAdmin)
-router,delete('/delete-admin/:adminId',protectRoute,deleteAdmin)
+router.delete('/delete-admin/:adminId',protectRoute,deleteAdmin)
 
 module.exports = router;
