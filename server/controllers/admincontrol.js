@@ -9,7 +9,7 @@ const addadmin = async (req, res) => {
 
   try {
     if (!fullname || !email || !password) {
-      return res.status(400).json({ message: "All fields are required man" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     if (password.length < 6) {
@@ -33,7 +33,7 @@ const addadmin = async (req, res) => {
       uniqueId: uniqueId,
     });
 
-    await newadmin.save(); // Save the admin
+    await newadmin.save();
     const subject = "Welcome to Our Application";
     const text = `Hello ${fullname},\n\nYou have been added as an admin to our application.\n\nPlease use the following credentials to log in:\n\nEmail: ${email}\nPassword: ${password}\n\nIf you have any questions, please contact our support team.\n\nThank you,\nOur Team`;
 
@@ -52,6 +52,7 @@ const addadmin = async (req, res) => {
     res.status(500).json({ msg: "Internal server error" });
   }
 };
+
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -60,11 +61,10 @@ const login = async (req, res) => {
     if (!admin) return res.status(400).json({ msg: "Invalid Email" });
 
     if (admin.isBlocked)
-      return res.status(403).json({ msg: "your account is blocked" });
+      return res.status(403).json({ msg: "Your account is blocked" });
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
-   console.log("admin id login ",admin._id);
    
     generateToken(admin._id, res);
     res.status(200).json({
@@ -107,7 +107,7 @@ const getalladmins = async (req, res) => {
   }
 };
 
-// Delete an admin by ID
+// Block an admin by ID
 const blockAdmin = async (req, res) => {
   const { adminId } = req.params;
 
@@ -126,19 +126,42 @@ const blockAdmin = async (req, res) => {
   }
 };
 
+// Edit admin details
 const editAdmin = async (req, res) => {
   const { adminId } = req.params;
-  const { fullname, email } = req.body;
+  const { fullname, password, role } = req.body;
 
   try {
     const admin = await Admin.findById(adminId);
     if (!admin) return res.status(404).json({ msg: "Admin not found" });
 
-    admin.fullname = fullname;
-    admin.email = email;
+    // Update fullname if provided
+    if (fullname) admin.fullname = fullname;
+
+    // Update role if provided
+    if (role) admin.role = role;
+
+    // Update password if provided
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ msg: "Password must be at least 6 characters" });
+      }
+      const salt = await bcrypt.genSalt();
+      admin.password = await bcrypt.hash(password, salt);
+    }
+
     await admin.save();
 
-    res.status(200).json({ msg: "Admin updated successfully" });
+    res.status(200).json({ 
+      msg: "Admin updated successfully",
+      updatedAdmin: {
+        _id: admin._id,
+        fullname: admin.fullname,
+        email: admin.email,
+        role: admin.role,
+        uniqueId: admin.uniqueId
+      }
+    });
   } catch (error) {
     console.error("Error updating admin:", error.message);
     res.status(500).json({ msg: "Internal server error" });
@@ -174,7 +197,36 @@ const logoutAdmin = async (req, res) => {
   }
 };
 
-// Export the functions using CommonJS
+const deleteAdmin = async (req, res) => {
+  const { adminId } = req.params;
+
+  try {
+    const admin = await Admin.findById(adminId);
+    if (!admin) return res.status(404).json({ msg: "Admin not found" });
+
+    // Prevent deletion of superadmin (if needed)
+    if (admin.role === "superadmin") {
+      return res.status(403).json({ msg: "Cannot delete superadmin" });
+    }
+
+    await Admin.findByIdAndDelete(adminId);
+    
+    // Send notification email
+    sendEmail(
+      admin.email,
+      "Account Deleted",
+      `Your admin account (${admin.email}) has been permanently deleted.`
+    );
+
+    res.status(200).json({ msg: "Admin deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting admin:", error.message);
+    res.status(500).json({ msg: "Internal server error" });
+  }
+};
+
+
+
 module.exports = {
   addadmin,
   login,
@@ -183,5 +235,6 @@ module.exports = {
   logoutAdmin,
   blockAdmin,
   unblockAdmin,
-  editAdmin
+  editAdmin,
+  deleteAdmin
 };

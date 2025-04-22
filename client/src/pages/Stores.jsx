@@ -27,7 +27,7 @@ const AdminStoreApproval = () => {
   const [selectedStore, setSelectedStore] = useState(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-  const [filter, setFilter] = useState('pending');
+  const [filter, setFilter] = useState('all');
   const [documentViewer, setDocumentViewer] = useState({
     open: false,
     url: '',
@@ -268,6 +268,9 @@ const AdminStoreApproval = () => {
             aria-label="store filter"
             size="small"
           >
+              <ToggleButton value="all" aria-label="all">
+              All Stores
+            </ToggleButton>
             <ToggleButton value="pending" aria-label="pending">
               Pending
             </ToggleButton>
@@ -280,9 +283,7 @@ const AdminStoreApproval = () => {
             <ToggleButton value="rejected" aria-label="rejected">
               Rejected
             </ToggleButton>
-            <ToggleButton value="all" aria-label="all">
-              All Stores
-            </ToggleButton>
+          
           </ToggleButtonGroup>
         </div>
       </div>

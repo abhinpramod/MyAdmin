@@ -24,10 +24,10 @@ import {
   Select,
   MenuItem,
   Box,
-  TablePagination, // Add TablePagination
+  TablePagination,
 } from "@mui/material";
 import { v4 as uuid } from "uuid";
-import { Edit, Block, CheckCircle } from "@mui/icons-material";
+import { Edit, Block, CheckCircle, Delete } from "@mui/icons-material";
 
 const ManageAdmins = () => {
   const [admins, setAdmins] = useState([]);
@@ -36,6 +36,7 @@ const ManageAdmins = () => {
   const [openAddAdmin, setOpenAddAdmin] = useState(false);
   const [openEditAdmin, setOpenEditAdmin] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [openDeleteConfirm, setOpenDeleteConfirm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     fullname: "",
@@ -47,13 +48,13 @@ const ManageAdmins = () => {
 
   // Pagination state
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5); // Default rows per page
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   // State for filters
   const [filters, setFilters] = useState({
-    status: "", // 'blocked' or 'active'
-    startDate: "", // Start date for filtering
-    endDate: "", // End date for filtering
+    status: "",
+    startDate: "",
+    endDate: "",
   });
 
   // Fetch Admins
@@ -104,13 +105,30 @@ const ManageAdmins = () => {
   // Handle Edit Admin
   const handleEditAdmin = async () => {
     if (!selectedAdmin) return;
+    
+    // Validate password if it's being changed
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      return toast.error("Passwords do not match");
+    }
+
     try {
-      const res = await axiosInstance.patch(`/admin/edit-admin/${selectedAdmin._id}`, formData);
+      // Only include password in the update if it's provided
+      const updateData = {
+        fullname: formData.fullname,
+        ...(formData.password && { password: formData.password }),
+        role: formData.role
+      };
+
+      const res = await axiosInstance.patch(
+        `/admin/edit-admin/${selectedAdmin._id}`,
+        updateData
+      );
+      
       if (res.status === 200) {
         toast.success("Admin details updated successfully!");
         setAdmins(
           admins.map((admin) =>
-            admin._id === selectedAdmin._id ? { ...admin, ...formData } : admin
+            admin._id === selectedAdmin._id ? { ...admin, ...updateData } : admin
           )
         );
         setOpenEditAdmin(false);
@@ -145,6 +163,24 @@ const ManageAdmins = () => {
       setLoading(false);
       setSelectedAdmin(null);
       setConfirmAction(null);
+    }
+  };
+
+  // Handle Delete Admin
+  const handleDeleteAdmin = async () => {
+    if (!selectedAdmin) return;
+    setLoading(true);
+    try {
+      await axiosInstance.delete(`/admin/delete-admin/${selectedAdmin._id}`);
+      toast.success("Admin deleted successfully");
+      setAdmins(admins.filter(admin => admin._id !== selectedAdmin._id));
+      setOpenDeleteConfirm(false);
+      setSelectedAdmin(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete admin");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,7 +221,7 @@ const ManageAdmins = () => {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to the first page when rows per page changes
+    setPage(0);
   };
 
   // Slice the admins for the current page
@@ -256,13 +292,14 @@ const ManageAdmins = () => {
                   <TableCell><strong>ID</strong></TableCell>
                   <TableCell><strong>Name</strong></TableCell>
                   <TableCell><strong>Email</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
                   <TableCell><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginatedAdmins.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} align="center">
+                    <TableCell colSpan={5} align="center">
                       No admin match for <strong>{searchTerm}</strong>
                     </TableCell>
                   </TableRow>
@@ -273,11 +310,24 @@ const ManageAdmins = () => {
                     <TableCell>{admin.fullname}</TableCell>
                     <TableCell>{admin.email}</TableCell>
                     <TableCell>
+                      {admin.isBlocked ? (
+                        <span className="text-red-500">Blocked</span>
+                      ) : (
+                        <span className="text-green-500">Active</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <Tooltip title="Edit">
                         <IconButton
                           onClick={() => {
                             setSelectedAdmin(admin);
-                            setFormData(admin);
+                            setFormData({
+                              fullname: admin.fullname,
+                              email: admin.email,
+                              password: "",
+                              confirmPassword: "",
+                              role: admin.role
+                            });
                             setOpenEditAdmin(true);
                           }}
                           variant="contained"
@@ -295,8 +345,21 @@ const ManageAdmins = () => {
                           }}
                           variant="contained"
                           color={admin.isBlocked ? "success" : "warning"}
+                          style={{ marginRight: "8px" }}
                         >
                           {admin.isBlocked ? <CheckCircle /> : <Block />}
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          onClick={() => {
+                            setSelectedAdmin(admin);
+                            setOpenDeleteConfirm(true);
+                          }}
+                          variant="contained"
+                          color="error"
+                        >
+                          <Delete />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
@@ -319,7 +382,7 @@ const ManageAdmins = () => {
         </>
       )}
 
-      {/* Confirmation Dialog */}
+      {/* Block/Unblock Confirmation Dialog */}
       <Dialog open={Boolean(confirmAction)} onClose={() => setConfirmAction(null)}>
         <DialogTitle>
           Are you sure you want to {confirmAction === "block" ? "block" : "unblock"} {selectedAdmin?.fullname}?
@@ -330,12 +393,59 @@ const ManageAdmins = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteConfirm} onClose={() => setOpenDeleteConfirm(false)}>
+        <DialogTitle>
+          Are you sure you want to delete {selectedAdmin?.fullname}?
+        </DialogTitle>
+        <DialogContent>
+          This action cannot be undone. All data associated with this admin will be permanently removed.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteConfirm(false)} color="secondary">Cancel</Button>
+          <Button onClick={handleDeleteAdmin} color="error">Delete</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Edit Admin Dialog */}
       <Dialog open={openEditAdmin} onClose={() => setOpenEditAdmin(false)}>
         <DialogTitle>Edit Admin</DialogTitle>
         <DialogContent>
-          <TextField label="Full Name" fullWidth margin="normal" value={formData.fullname} onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} />
-          <TextField label="Email" fullWidth margin="normal" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <TextField 
+            label="Full Name" 
+            fullWidth 
+            margin="normal" 
+            value={formData.fullname} 
+            onChange={(e) => setFormData({ ...formData, fullname: e.target.value })} 
+          />
+          
+          <TextField 
+            label="Email" 
+            fullWidth 
+            margin="normal" 
+            value={formData.email} 
+            InputProps={{
+              readOnly: true,
+            }}
+          />
+          
+          <TextField 
+            label="New Password (leave blank to keep current)" 
+            fullWidth 
+            margin="normal" 
+            type="password" 
+            value={formData.password} 
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+          />
+          
+          <TextField 
+            label="Confirm New Password" 
+            fullWidth 
+            margin="normal" 
+            type="password" 
+            value={formData.confirmPassword} 
+            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })} 
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenEditAdmin(false)} color="secondary">Cancel</Button>
