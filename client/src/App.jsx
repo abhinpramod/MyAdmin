@@ -22,6 +22,7 @@ import Allusers from "./pages/Allusers";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Testimonial from "./pages/testimonial";
 function App() {
   const dispatch = useDispatch();
   const { admin } = useSelector((state) => state.admin);
@@ -93,6 +94,7 @@ function App() {
                 )
               }
             />
+            <Route path="testimonial" element={<Testimonial />} />
 
             <Route path="*" element={<Navigate to="/admin/dashboard" />} />
           </Route>
