@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Box,
-  Tab,
-  Tabs,
   Paper,
   Typography,
   Container,
@@ -20,9 +18,15 @@ import {
   TableHead,
   TableRow,
   CircularProgress,
-  InputAdornment
+  InputAdornment,
+  Collapse,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Divider
 } from '@mui/material';
-import { Plus, Upload, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Upload, Pencil, Trash2, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axiosInstance from '../lib/aixos';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -42,33 +46,6 @@ function useDebounce(value, delay) {
   }, [value, delay]);
 
   return debouncedValue;
-}
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
 }
 
 const JobTypeForm = ({ onAddJobType }) => {
@@ -569,7 +546,10 @@ const SettingsPage = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
-  const [tabValue, setTabValue] = useState(0);
+  
+  // State for expanded sections
+  const [expandedJobTypes, setExpandedJobTypes] = useState(false);
+  const [expandedProductTypes, setExpandedProductTypes] = useState(false);
   
   // Pagination state
   const [jobTypePage, setJobTypePage] = useState(1);
@@ -580,14 +560,6 @@ const SettingsPage = () => {
   // Search state
   const [jobTypeSearchTerm, setJobTypeSearchTerm] = useState('');
   const [productTypeSearchTerm, setProductTypeSearchTerm] = useState('');
-
-  // Add the missing handleTabChange function
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-    // Reset search terms when changing tabs
-    setJobTypeSearchTerm('');
-    setProductTypeSearchTerm('');
-  };
 
   const fetchJobTypes = async (page = 1, initialLoad = false, searchTerm = '') => {
     try {
@@ -714,7 +686,7 @@ const SettingsPage = () => {
   };
 
   const handleUpdateEntity = async (id, name, image) => {
-    const endpoint = tabValue === 0 
+    const endpoint = expandedJobTypes 
       ? `/settings/editjobtype/${id}` 
       : `/settings/editproducttype/${id}`;
     
@@ -727,33 +699,33 @@ const SettingsPage = () => {
       await axiosInstance.put(endpoint, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success(`${tabValue === 0 ? 'Job' : 'Product'} type updated successfully`);
-      tabValue === 0 
+      toast.success(`${expandedJobTypes ? 'Job' : 'Product'} type updated successfully`);
+      expandedJobTypes 
         ? loadMoreJobTypes(1, true, jobTypeSearchTerm) 
         : loadMoreProductTypes(1, true, productTypeSearchTerm);
     } catch (error) {
-      console.error(`Error updating ${tabValue === 0 ? 'job' : 'product'} type:`, error);
-      toast.error(`Failed to update ${tabValue === 0 ? 'job' : 'product'} type`);
+      console.error(`Error updating ${expandedJobTypes ? 'job' : 'product'} type:`, error);
+      toast.error(`Failed to update ${expandedJobTypes ? 'job' : 'product'} type`);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteEntity = async (id) => {
-    const endpoint = tabValue === 0 
+    const endpoint = expandedJobTypes 
       ? `/settings/deletejobtype/${id}` 
       : `/settings/deleteproducttype/${id}`;
 
     try {
       setIsLoading(true);
       await axiosInstance.delete(endpoint);
-      toast.success(`${tabValue === 0 ? 'Job' : 'Product'} type deleted successfully`);
-      tabValue === 0 
+      toast.success(`${expandedJobTypes ? 'Job' : 'Product'} type deleted successfully`);
+      expandedJobTypes 
         ? loadMoreJobTypes(1, true, jobTypeSearchTerm) 
         : loadMoreProductTypes(1, true, productTypeSearchTerm);
     } catch (error) {
-      console.error(`Error deleting ${tabValue === 0 ? 'job' : 'product'} type:`, error);
-      toast.error(`Failed to delete ${tabValue === 0 ? 'job' : 'product'} type`);
+      console.error(`Error deleting ${expandedJobTypes ? 'job' : 'product'} type:`, error);
+      toast.error(`Failed to delete ${expandedJobTypes ? 'job' : 'product'} type`);
     } finally {
       setIsLoading(false);
     }
@@ -777,9 +749,13 @@ const SettingsPage = () => {
   };
 
   useEffect(() => {
-    loadMoreJobTypes(1, true);
-    loadMoreProductTypes(1, true);
-  }, []);
+    if (expandedJobTypes) {
+      loadMoreJobTypes(1, true);
+    }
+    if (expandedProductTypes) {
+      loadMoreProductTypes(1, true);
+    }
+  }, [expandedJobTypes, expandedProductTypes]);
 
   if (isLoading && jobTypes.length === 0 && productTypes.length === 0) {
     return (
@@ -791,70 +767,91 @@ const SettingsPage = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Settings Management
-        </Typography>
-        
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-              value={tabValue} 
-              onChange={handleTabChange}
-              aria-label="settings tabs"
+      <Typography variant="h4" component="h1" align="center" gutterBottom>
+        Settings Management
+      </Typography>
+      
+      <Paper elevation={3} sx={{ mb: 3 }}>
+        <List>
+          {/* Job Types Section */}
+          <ListItem disablePadding>
+            <ListItemButton 
+              onClick={() => setExpandedJobTypes(!expandedJobTypes)}
+              sx={{ px: 3, py: 2 }}
             >
-              <Tab label="Manage Job Types" {...a11yProps(0)} />
-              <Tab label="Manage Product Types" {...a11yProps(1)} />
-            </Tabs>
-          </Box>
+              <ListItemText 
+                primary="Manage Job Types" 
+                primaryTypographyProps={{ variant: 'h6', fontWeight: 'medium' }}
+              />
+              {expandedJobTypes ? <ChevronUp /> : <ChevronDown />}
+            </ListItemButton>
+          </ListItem>
+          <Collapse in={expandedJobTypes} timeout="auto" unmountOnExit>
+            <Box sx={{ px: 3, pb: 3 }}>
+              <JobTypeForm onAddJobType={handleAddJobType} />
+              <JobTypeTable
+                jobTypes={jobTypes}
+                onEdit={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
+                onDelete={(id) => openConfirmationDialog('delete', id)}
+                onUpdate={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
+                fetchMoreData={loadMoreJobTypes}
+                hasMore={hasMoreJobTypes && jobTypeSearchTerm === ''}
+                searchTerm={jobTypeSearchTerm}
+                setSearchTerm={setJobTypeSearchTerm}
+              />
+            </Box>
+          </Collapse>
           
-          <TabPanel value={tabValue} index={0}>
-            <JobTypeForm onAddJobType={handleAddJobType} />
-            <JobTypeTable
-              jobTypes={jobTypes}
-              onEdit={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
-              onDelete={(id) => openConfirmationDialog('delete', id)}
-              onUpdate={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
-              fetchMoreData={loadMoreJobTypes}
-              hasMore={hasMoreJobTypes && jobTypeSearchTerm === ''}
-              searchTerm={jobTypeSearchTerm}
-              setSearchTerm={setJobTypeSearchTerm}
-            />
-          </TabPanel>
+          <Divider />
           
-          <TabPanel value={tabValue} index={1}>
-            <ProductTypeForm onAddProductType={handleAddProductType} />
-            <ProductTypeTable
-              productTypes={productTypes}
-              onEdit={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
-              onDelete={(id) => openConfirmationDialog('delete', id)}
-              onUpdate={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
-              fetchMoreData={loadMoreProductTypes}
-              hasMore={hasMoreProductTypes && productTypeSearchTerm === ''}
-              searchTerm={productTypeSearchTerm}
-              setSearchTerm={setProductTypeSearchTerm}
-            />
-          </TabPanel>
-        </Box>
-
-        <ConfirmationDialog
-          open={confirmDialogOpen}
-          onClose={() => setConfirmDialogOpen(false)}
-          onConfirm={handleConfirmation}
-          title={
-            confirmAction === 'delete'
-              ? `Confirm ${tabValue === 0 ? 'Job' : 'Product'} Type Deletion`
-              : `Confirm ${tabValue === 0 ? 'Job' : 'Product'} Type Update`
-          }
-          message={
-            confirmAction === 'delete'
-              ? `Are you sure you want to delete this ${tabValue === 0 ? 'job' : 'product'} type?`
-              : `Are you sure you want to update this ${tabValue === 0 ? 'job' : 'product'} type?`
-          }
-          confirmButtonText={confirmAction === 'delete' ? 'Delete' : 'Update'}
-          confirmButtonColor={confirmAction === 'delete' ? 'error' : 'primary'}
-        />
+          {/* Product Types Section */}
+          <ListItem disablePadding>
+            <ListItemButton 
+              onClick={() => setExpandedProductTypes(!expandedProductTypes)}
+              sx={{ px: 3, py: 2 }}
+            >
+              <ListItemText 
+                primary="Manage Product Types" 
+                primaryTypographyProps={{ variant: 'h6', fontWeight: 'medium' }}
+              />
+              {expandedProductTypes ? <ChevronUp /> : <ChevronDown />}
+            </ListItemButton>
+          </ListItem>
+          <Collapse in={expandedProductTypes} timeout="auto" unmountOnExit>
+            <Box sx={{ px: 3, pb: 3 }}>
+              <ProductTypeForm onAddProductType={handleAddProductType} />
+              <ProductTypeTable
+                productTypes={productTypes}
+                onEdit={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
+                onDelete={(id) => openConfirmationDialog('delete', id)}
+                onUpdate={(id, name, image) => openConfirmationDialog('update', id, { name, image })}
+                fetchMoreData={loadMoreProductTypes}
+                hasMore={hasMoreProductTypes && productTypeSearchTerm === ''}
+                searchTerm={productTypeSearchTerm}
+                setSearchTerm={setProductTypeSearchTerm}
+              />
+            </Box>
+          </Collapse>
+        </List>
       </Paper>
+
+      <ConfirmationDialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={handleConfirmation}
+        title={
+          confirmAction === 'delete'
+            ? `Confirm ${expandedJobTypes ? 'Job' : 'Product'} Type Deletion`
+            : `Confirm ${expandedJobTypes ? 'Job' : 'Product'} Type Update`
+        }
+        message={
+          confirmAction === 'delete'
+            ? `Are you sure you want to delete this ${expandedJobTypes ? 'job' : 'product'} type?`
+            : `Are you sure you want to update this ${expandedJobTypes ? 'job' : 'product'} type?`
+        }
+        confirmButtonText={confirmAction === 'delete' ? 'Delete' : 'Update'}
+        confirmButtonColor={confirmAction === 'delete' ? 'error' : 'primary'}
+      />
     </Container>
   );
 };

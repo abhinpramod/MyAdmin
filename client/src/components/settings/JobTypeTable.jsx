@@ -1,11 +1,46 @@
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
-import { Pencil, Trash, Upload } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Box,
+  Paper,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  CircularProgress,
+  InputAdornment,
+  TextField,
+  Button,
+  IconButton
+} from '@mui/material';
+import { Pencil, Trash2, Search, Upload } from 'lucide-react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import useDebounce from '../../hooks/useDebounce';
 
-const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate }) => {
+const JobTypeTable = ({ 
+  jobTypes, 
+  onEdit, 
+  onDelete, 
+  onUpdate, 
+  fetchMoreData, 
+  hasMore,
+  searchTerm,
+  setSearchTerm
+}) => {
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    if (debouncedSearchTerm !== '') {
+      fetchMoreData(1, true, debouncedSearchTerm);
+    } else if (searchTerm === '') {
+      fetchMoreData(1, true, '');
+    }
+  }, [debouncedSearchTerm]);
 
   const handleEdit = (id, name) => {
     setEditingId(id);
@@ -18,93 +53,139 @@ const JobTypeTable = ({ jobTypes, onEdit, onDelete, onUpdate }) => {
   };
 
   return (
-    <TableContainer component={Paper} className="shadow-sm border border-gray-200">
-      <Table>
-        <TableHead className="bg-gray-100">
-          <TableRow>
-            <TableCell className="font-bold text-gray-900"><strong>Job Type</strong></TableCell>
-            <TableCell className="font-bold text-gray-900" align="center"><strong>Image</strong></TableCell>
-            <TableCell className="font-bold text-gray-900" align="center"><strong>Actions</strong></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {Array.isArray(jobTypes) && jobTypes.length > 0 ? (
-            jobTypes.map((job) => (
-              <TableRow key={job._id} className="hover:bg-gray-50 transition-colors">
-                <TableCell className="text-gray-900 font-bold">
+    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0' }}>
+      <TextField
+        fullWidth
+        placeholder="Search job types..."
+        variant="outlined"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        sx={{ mb: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search size={20} />
+            </InputAdornment>
+          ),
+        }}
+      />
+      <InfiniteScroll
+        dataLength={jobTypes.length}
+        next={() => {
+          if (searchTerm === '') {
+            fetchMoreData(null, false, '');
+          }
+        }}
+        hasMore={hasMore && searchTerm === ''}
+        loader={
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        }
+        endMessage={
+          <Typography variant="body2" align="center" sx={{ p: 2 }}>
+            {jobTypes.length === 0 ? 'No job types found' : 
+             searchTerm ? 'End of search results' : 'No more job types to load'}
+          </Typography>
+        }
+        height={500}
+      >
+        <Table>
+          <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 'bold' }}>Job Type</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Image</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {jobTypes.map((job) => (
+              <TableRow key={job._id} hover>
+                <TableCell>
                   {editingId === job._id ? (
                     <TextField
-                      defaultValue={job.name}
+                      fullWidth
+                      value={editingName}
                       onChange={(e) => setEditingName(e.target.value)}
-                      className="w-full"
                     />
                   ) : (
-                    job.name
+                    <Typography fontWeight="medium">{job.name}</Typography>
                   )}
                 </TableCell>
                 <TableCell align="center">
-                  {job.image ? (
-                    <img
-                      src={job.image}
-                      alt={job.name}
-                      className="w-30 h-30 object-cover mx-auto border-2 border-gray-200"
-                    />
-                  ) : (
-                    <Upload className="w-6 h-6 mx-auto text-gray-400" />
-                  )}
-                  {editingId === job._id && (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="mt-2"
-                      onChange={(e) => setSelectedImage({ id: job._id, file: e.target.files[0] })}
-                    />
-                  )}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    {job.image && (
+                      <Box
+                        component="img"
+                        src={job.image}
+                        alt={job.name}
+                        sx={{ width: 56, height: 56, objectFit: 'cover', border: '1px solid #e0e0e0' }}
+                      />
+                    )}
+                    {editingId === job._id && (
+                      <Button
+                        variant="outlined"
+                        component="label"
+                        size="small"
+                        startIcon={<Upload size={16} />}
+                      >
+                        Change
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={(e) => setSelectedImage({ id: job._id, file: e.target.files[0] })}
+                        />
+                      </Button>
+                    )}
+                  </Box>
                 </TableCell>
                 <TableCell align="center">
                   {editingId === job._id ? (
-                    <div className="flex items-center justify-center gap-2">
+                    <Box display="flex" gap={1} justifyContent="center">
                       <Button
-                        onClick={() => onUpdate(job._id, editingName, selectedImage)}
-                        className="bg-gray-900 text-white hover:bg-gray-700"
+                        variant="contained"
+                        onClick={() => {
+                          onUpdate(job._id, editingName, selectedImage);
+                          handleCancel();
+                        }}
                       >
                         Save
                       </Button>
                       <Button
+                        variant="outlined"
                         onClick={handleCancel}
-                        className="text-gray-900 hover:bg-gray-200"
                       >
                         Cancel
                       </Button>
-                    </div>
+                    </Box>
                   ) : (
-                    <div className="flex items-center justify-center gap-2">
+                    <Box display="flex" gap={1} justifyContent="center">
                       <IconButton
                         onClick={() => handleEdit(job._id, job.name)}
-                        className="text-gray-900 hover:bg-gray-200 rounded-full p-2"
+                        sx={{ color: 'text.primary' }}
                       >
-                        <Pencil className="w-7 h-7 text-gray-800" />
+                        <Pencil size={20} />
                       </IconButton>
                       <IconButton
                         onClick={() => onDelete(job._id)}
-                        className="text-gray-900 hover:bg-gray-200 rounded-full p-2"
+                        sx={{ color: 'error.main' }}
                       >
-                        <Trash className="w-7 h-7 text-gray-800" />
+                        <Trash2 size={20} />
                       </IconButton>
-                    </div>
+                    </Box>
                   )}
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={3} align="center" className="text-gray-500 py-6">
-                No job types found.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      </InfiniteScroll>
     </TableContainer>
   );
 };

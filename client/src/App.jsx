@@ -16,13 +16,15 @@ import { loginAdmin, logoutAdmin } from "./redux/adminSlice";
 import Layout from "./components/Layout";
 import Stores from "./pages/Stores";
 import Contractors from "./pages/Contractors";
-import Settings from "./pages/Settings";
+// import Settings from "./pages/Settings";
 import ContractorRequests from "./pages/ContractorRequests";
 import Allusers from "./pages/Allusers";
 import ManageAdmins from "./pages/ManageAdmins";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Testimonial from "./pages/testimonial";
+
+import Settings from "./pages/Settings";
 function App() {
   const dispatch = useDispatch();
   const { admin } = useSelector((state) => state.admin);
@@ -78,6 +80,8 @@ function App() {
             <Route path="stores" element={<Stores />} />
             <Route path="contractors" element={<Contractors />} />
             <Route path="settings" element={<Settings />} />
+            {/* <Route path="product-types" element={<ProductTypes />} /> */}
+            {/* <Route path="job-types" element={<JobTypes />} /> */}
             <Route
               path="contractor-requests"
               element={<ContractorRequests />}
@@ -94,11 +98,15 @@ function App() {
                 )
               }
             />
-            <Route path="testimonial" element={<Testimonial />} />
-
+           
+             
             <Route path="*" element={<Navigate to="/admin/dashboard" />} />
           </Route>
+          <Route path="/testimonial" element={<Testimonial />} />
+
+          
         </Routes>
+        
       </Router>
     </div>
   );

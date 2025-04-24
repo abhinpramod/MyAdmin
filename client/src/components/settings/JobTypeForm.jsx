@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { IconButton, TextField } from '@mui/material';
+import { 
+  Box,
+  Paper,
+  IconButton,
+  Button,
+  TextField
+} from '@mui/material';
 import { Plus, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,36 +22,48 @@ const JobTypeForm = ({ onAddJobType }) => {
   };
 
   return (
-    <div className="p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-      <div className="flex items-center gap-4">
-        <input
-          type="text"
+    <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #e0e0e0', bgcolor: '#fafafa' }}>
+      <Box display="flex" alignItems="center" gap={2}>
+        <TextField
+          fullWidth
+          variant="outlined"
           placeholder="Job Type Name"
           value={newJob.name}
           onChange={(e) => setNewJob({ ...newJob, name: e.target.value })}
-          className="border border-gray-300 p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white text-gray-900 placeholder-gray-400"
         />
-        <div className="relative w-30 h-30 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center overflow-hidden bg-white hover:border-gray-400 transition-colors">
-          {newJob.image ? (
-            <img src={URL.createObjectURL(newJob.image)} alt="Preview" className="w-full h-full object-cover" />
-          ) : (
-            <Upload className="w-9 h-9 text-gray-400" />
-          )}
+        <Button
+          variant="outlined"
+          component="label"
+          startIcon={<Upload size={20} />}
+          sx={{
+            p: 1.5,
+            minWidth: 120,
+            borderStyle: 'dashed',
+            display: 'flex',
+            flexDirection: 'column',
+            height: 56
+          }}
+        >
+          {newJob.image ? newJob.image.name : 'Upload'}
           <input
             type="file"
+            hidden
             accept="image/*"
-            className="absolute inset-0 opacity-0 cursor-pointer"
             onChange={(e) => setNewJob({ ...newJob, image: e.target.files[0] })}
           />
-        </div>
+        </Button>
         <IconButton
           onClick={handleAddJobType}
-          className="p-2 bg-gray-900 text-white rounded-full hover:bg-gray-700 transition-colors"
+          sx={{ 
+            bgcolor: 'primary.main', 
+            color: 'white',
+            '&:hover': { bgcolor: 'primary.dark' }
+          }}
         >
-          <Plus className="w-9 h-9" />
+          <Plus size={24} />
         </IconButton>
-      </div>
-    </div>
+      </Box>
+    </Paper>
   );
 };
 

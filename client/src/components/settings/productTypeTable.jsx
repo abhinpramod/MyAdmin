@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@mui/material';
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Button } from '@mui/material';
 import { Pencil, Trash2 } from 'lucide-react';
 // import Image from 'next/image';
@@ -8,13 +8,13 @@ const ProductTypeTable = ({ productTypes, onEdit, onDelete }) => {
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
-        <TableHeader className="bg-gray-100">
+        <TableHead className="bg-gray-100">
           <TableRow>
             <TableHead>Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
-        </TableHeader>
+        </TableHead>
         <TableBody>
           {productTypes.map((product) => (
             <TableRow key={product._id}>
