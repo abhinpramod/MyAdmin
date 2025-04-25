@@ -4,6 +4,7 @@ const cloudinary = require('../lib/cloudinary');
 
 // Get all testimonials with pagination and search
 const getAllTestimonials = async (req, res) => {
+  console.log('testimonials backend');
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
