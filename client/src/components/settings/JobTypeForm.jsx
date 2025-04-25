@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { 
+import {
   Box,
   Paper,
-  IconButton,
+  TextField,
   Button,
-  TextField
+  IconButton
 } from '@mui/material';
 import { Plus, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const JobTypeForm = ({ onAddJobType }) => {
+const JobTypeForm = ({ onAddJobType, isLoading }) => {
   const [newJob, setNewJob] = useState({ name: '', image: null });
 
   const handleAddJobType = () => {
@@ -30,6 +30,7 @@ const JobTypeForm = ({ onAddJobType }) => {
           placeholder="Job Type Name"
           value={newJob.name}
           onChange={(e) => setNewJob({ ...newJob, name: e.target.value })}
+          disabled={isLoading}
         />
         <Button
           variant="outlined"
@@ -43,6 +44,7 @@ const JobTypeForm = ({ onAddJobType }) => {
             flexDirection: 'column',
             height: 56
           }}
+          disabled={isLoading}
         >
           {newJob.image ? newJob.image.name : 'Upload'}
           <input
@@ -59,6 +61,7 @@ const JobTypeForm = ({ onAddJobType }) => {
             color: 'white',
             '&:hover': { bgcolor: 'primary.dark' }
           }}
+          disabled={isLoading}
         >
           <Plus size={24} />
         </IconButton>

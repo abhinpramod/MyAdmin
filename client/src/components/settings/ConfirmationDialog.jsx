@@ -15,7 +15,8 @@ const ConfirmationDialog = ({
   title, 
   message, 
   confirmButtonText, 
-  confirmButtonColor 
+  confirmButtonColor,
+  isLoading
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -24,7 +25,7 @@ const ConfirmationDialog = ({
         <Typography>{message}</Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose} disabled={isLoading}>Cancel</Button>
         <Button 
           onClick={() => {
             onConfirm();
@@ -32,8 +33,9 @@ const ConfirmationDialog = ({
           }}
           color={confirmButtonColor}
           variant="contained"
+          disabled={isLoading}
         >
-          {confirmButtonText}
+          {isLoading ? 'Processing...' : confirmButtonText}
         </Button>
       </DialogActions>
     </Dialog>

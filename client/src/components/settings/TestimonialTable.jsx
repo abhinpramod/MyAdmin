@@ -13,14 +13,15 @@ import {
   IconButton,
   CircularProgress,
   Typography,
-  InputAdornment
+  InputAdornment,
+  Rating
 } from '@mui/material';
 import { Pencil, Trash2, Search, Upload } from 'lucide-react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import useDebounce from '../../hooks/useDebounce';
 
-const JobTypeTable = ({ 
-  jobTypes, 
+const TestimonialTable = ({ 
+  testimonials, 
   onEdit, 
   onDelete, 
   onUpdate, 
@@ -31,8 +32,12 @@ const JobTypeTable = ({
   isLoading
 }) => {
   const [editingId, setEditingId] = useState(null);
-  const [editingName, setEditingName] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [editingData, setEditingData] = useState({
+    name: '',
+    feedback: '',
+    rating: 5,
+    image: null
+  });
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   useEffect(() => {
@@ -43,21 +48,25 @@ const JobTypeTable = ({
     }
   }, [debouncedSearchTerm]);
 
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditingName(name);
+  const handleEdit = (testimonial) => {
+    setEditingId(testimonial._id);
+    setEditingData({
+      name: testimonial.name,
+      feedback: testimonial.feedback,
+      rating: testimonial.rating,
+      image: null
+    });
   };
 
   const handleCancel = () => {
     setEditingId(null);
-    setSelectedImage(null);
   };
 
   return (
     <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0' }}>
       <TextField
         fullWidth
-        placeholder="Search job types..."
+        placeholder="Search testimonials..."
         variant="outlined"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -72,7 +81,7 @@ const JobTypeTable = ({
         disabled={isLoading}
       />
       <InfiniteScroll
-        dataLength={jobTypes.length}
+        dataLength={testimonials.length}
         next={() => {
           if (searchTerm === '') {
             fetchMoreData(null, false, '');
@@ -86,8 +95,8 @@ const JobTypeTable = ({
         }
         endMessage={
           <Typography variant="body2" align="center" sx={{ p: 2 }}>
-            {jobTypes.length === 0 ? 'No job types found' : 
-             searchTerm ? 'End of search results' : 'No more job types to load'}
+            {testimonials.length === 0 ? 'No testimonials found' : 
+             searchTerm ? 'End of search results' : 'No more testimonials to load'}
           </Typography>
         }
         height={500}
@@ -95,24 +104,53 @@ const JobTypeTable = ({
         <Table>
           <TableHead sx={{ bgcolor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Job Type</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Feedback</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Rating</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>Image</TableCell>
               <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {jobTypes.map((job) => (
-              <TableRow key={job._id} hover>
+            {testimonials.map((testimonial) => (
+              <TableRow key={testimonial._id} hover>
                 <TableCell>
-                  {editingId === job._id ? (
+                  {editingId === testimonial._id ? (
                     <TextField
                       fullWidth
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
+                      value={editingData.name}
+                      onChange={(e) => setEditingData({ ...editingData, name: e.target.value })}
                       disabled={isLoading}
                     />
                   ) : (
-                    <Typography fontWeight="medium">{job.name}</Typography>
+                    <Typography fontWeight="medium">{testimonial.name}</Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {editingId === testimonial._id ? (
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      value={editingData.feedback}
+                      onChange={(e) => setEditingData({ ...editingData, feedback: e.target.value })}
+                      disabled={isLoading}
+                    />
+                  ) : (
+                    <Typography>{testimonial.feedback}</Typography>
+                  )}
+                </TableCell>
+                <TableCell align="center">
+                  {editingId === testimonial._id ? (
+                    <Rating
+                      value={editingData.rating}
+                      onChange={(event, newValue) => {
+                        setEditingData({ ...editingData, rating: newValue });
+                      }}
+                      disabled={isLoading}
+                    />
+                  ) : (
+                    <Rating value={testimonial.rating} readOnly />
                   )}
                 </TableCell>
                 <TableCell align="center">
@@ -122,15 +160,15 @@ const JobTypeTable = ({
                     alignItems: 'center',
                     gap: 1
                   }}>
-                    {job.image && (
+                    {testimonial.image && (
                       <Box
                         component="img"
-                        src={job.image}
-                        alt={job.name}
+                        src={testimonial.image}
+                        alt={testimonial.name}
                         sx={{ width: 56, height: 56, objectFit: 'cover', border: '1px solid #e0e0e0' }}
                       />
                     )}
-                    {editingId === job._id && (
+                    {editingId === testimonial._id && (
                       <Button
                         variant="outlined"
                         component="label"
@@ -143,19 +181,22 @@ const JobTypeTable = ({
                           type="file"
                           hidden
                           accept="image/*"
-                          onChange={(e) => setSelectedImage({ id: job._id, file: e.target.files[0] })}
+                          onChange={(e) => setEditingData({ 
+                            ...editingData, 
+                            image: e.target.files[0] 
+                          })}
                         />
                       </Button>
                     )}
                   </Box>
                 </TableCell>
                 <TableCell align="center">
-                  {editingId === job._id ? (
+                  {editingId === testimonial._id ? (
                     <Box display="flex" gap={1} justifyContent="center">
                       <Button
                         variant="contained"
                         onClick={() => {
-                          onUpdate(job._id, editingName, selectedImage);
+                          onUpdate(testimonial._id, editingData);
                           handleCancel();
                         }}
                         disabled={isLoading}
@@ -173,14 +214,14 @@ const JobTypeTable = ({
                   ) : (
                     <Box display="flex" gap={1} justifyContent="center">
                       <IconButton
-                        onClick={() => handleEdit(job._id, job.name)}
+                        onClick={() => handleEdit(testimonial)}
                         sx={{ color: 'text.primary' }}
                         disabled={isLoading}
                       >
                         <Pencil size={20} />
                       </IconButton>
                       <IconButton
-                        onClick={() => onDelete(job._id)}
+                        onClick={() => onDelete(testimonial._id)}
                         sx={{ color: 'error.main' }}
                         disabled={isLoading}
                       >
@@ -198,4 +239,4 @@ const JobTypeTable = ({
   );
 };
 
-export default JobTypeTable;
+export default TestimonialTable;

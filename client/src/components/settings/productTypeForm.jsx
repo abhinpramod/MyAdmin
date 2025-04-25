@@ -1,44 +1,72 @@
 import React, { useState } from 'react';
-// import { useForm } from 'react-hook-form';
-import  { Button } from '@mui/material';
-import { Input } from '@mui/material';
-import { Label } from '@mui/material';
-import {ImageUpload }from '@mui/material';
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  IconButton
+} from '@mui/material';
+import { Plus, Upload } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-const ProductTypeForm = ({ onAddProductType }) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const [image, setImage] = useState(null);
+const ProductTypeForm = ({ onAddProductType, isLoading }) => {
+  const [newProduct, setNewProduct] = useState({ name: '', image: null });
 
-  const onSubmit = (data) => {
-    if (!image) {
-      alert('Please upload an image');
+  const handleAddProductType = () => {
+    if (!newProduct.name || !newProduct.image) {
+      toast.error('Please provide both name and image');
       return;
     }
-    onAddProductType({ ...data, image });
-    reset();
-    setImage(null);
+    onAddProductType(newProduct);
+    setNewProduct({ name: '', image: null });
   };
 
   return (
-    <div className="p-6 border rounded-lg bg-gray-50">
-      <h2 className="text-xl font-semibold mb-4">Add New Product Type</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <Label htmlFor="name">Product Type Name</Label>
-          <Input
-            id="name"
-            {...register('name', { required: 'Product type name is required' })}
+    <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #e0e0e0', bgcolor: '#fafafa' }}>
+      <Box display="flex" alignItems="center" gap={2}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Product Type Name"
+          value={newProduct.name}
+          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+          disabled={isLoading}
+        />
+        <Button
+          variant="outlined"
+          component="label"
+          startIcon={<Upload size={20} />}
+          sx={{
+            p: 1.5,
+            minWidth: 120,
+            borderStyle: 'dashed',
+            display: 'flex',
+            flexDirection: 'column',
+            height: 56
+          }}
+          disabled={isLoading}
+        >
+          {newProduct.image ? newProduct.image.name : 'Upload'}
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={(e) => setNewProduct({ ...newProduct, image: e.target.files[0] })}
           />
-          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
-        </div>
-        
-        <ImageUpload onImageUpload={setImage} />
-        
-        <Button type="submit" className="w-full">
-          Add Product Type
         </Button>
-      </form>
-    </div>
+        <IconButton
+          onClick={handleAddProductType}
+          sx={{ 
+            bgcolor: 'primary.main', 
+            color: 'white',
+            '&:hover': { bgcolor: 'primary.dark' }
+          }}
+          disabled={isLoading}
+        >
+          <Plus size={24} />
+        </IconButton>
+      </Box>
+    </Paper>
   );
 };
 
