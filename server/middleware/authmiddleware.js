@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const Admin = require("../model/admin");
-
+const env = require("dotenv").config();
 
 const protectRoute = async (req, res, next) => {
   console.log('protectRoute');
