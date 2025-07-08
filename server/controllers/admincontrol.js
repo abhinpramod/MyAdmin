@@ -1,5 +1,5 @@
 const Admin = require("../model/admin.js");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const generateToken = require("../lib/utils.js");
 const sendEmail = require("../lib/mailer.js");
 
