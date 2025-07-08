@@ -13,8 +13,8 @@ import ConfirmationDialog from '../components/settings/ConfirmationDialog';
 import ExpandableSection from '../components/settings/ExpandableSection';
 import JobTypeForm from '../components/settings/JobTypeForm';
 import JobTypeTable from '../components/settings/JobTypeTable';
-import ProductTypeForm from '../components/settings/ProductTypeForm';
-import ProductTypeTable from '../components/settings/ProductTypeTable';
+import ProductTypeForm from '../components/settings/productTypeForm';
+import ProductTypeTable from '../components/settings/productTypeTable';
 import TestimonialForm from '../components/settings/TestimonialForm';
 import TestimonialTable from '../components/settings/TestimonialTable';
 
