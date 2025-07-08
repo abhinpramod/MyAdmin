@@ -1,5 +1,5 @@
 const User = require("../model/user.js");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const sendEmail = require("../lib/mailer.js");
 const uuid = require("uuid");
 
