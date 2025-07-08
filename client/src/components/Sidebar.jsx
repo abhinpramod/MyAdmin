@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import axiosInstance from "../lib/aixos";
+import axiosInstance from "../lib/axios";
 import { logoutAdmin, loginAdmin } from "../redux/adminSlice";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";

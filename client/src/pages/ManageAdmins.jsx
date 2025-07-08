@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import axiosInstance from "../lib/aixos";
+import axiosInstance from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { v4 as uuid } from "uuid";
 import { Box, Button, TablePagination } from "@mui/material";

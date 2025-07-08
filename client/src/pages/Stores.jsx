@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Store, Search } from 'lucide-react';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import axios from '../lib/aixos';
+import axios from '../lib/axios';
 import { toast } from 'react-hot-toast';
 
 import StoreCard from '../components/store.components/StoreCard';

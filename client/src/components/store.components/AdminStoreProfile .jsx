@@ -10,7 +10,7 @@ import {
   IconButton
 } from "@mui/material";
 import { X } from 'lucide-react';
-import axios from '../../lib/aixos';
+import axios from '../../lib/axios';
 import { toast } from 'react-hot-toast';
 import StoreHeader from './StoreHeader';
 import StoreDetails from './StoreDetails';

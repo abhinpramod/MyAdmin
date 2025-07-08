@@ -8,7 +8,7 @@ import {
   List
 } from '@mui/material';
 import toast from 'react-hot-toast';
-import axiosInstance from '../lib/aixos';
+import axiosInstance from '../lib/axios';
 import ConfirmationDialog from '../components/settings/ConfirmationDialog';
 import ExpandableSection from '../components/settings/ExpandableSection';
 import JobTypeForm from '../components/settings/JobTypeForm';
@@ -357,7 +357,7 @@ const SettingsPage = () => {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom>
-        Settings Management
+        Settings
       </Typography>
       
       <Paper elevation={3} sx={{ mb: 3 }}>

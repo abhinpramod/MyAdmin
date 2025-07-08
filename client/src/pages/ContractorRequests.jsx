@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, Tab, TextField, Box, CircularProgress, Typography } from "@mui/material";
-import axiosInstance from "../lib/aixos";
+import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import AllContractors from "./Contractors";
 import RequestCard from "../components/Contractor/RequestCard";

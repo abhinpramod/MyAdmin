@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { Block, CheckCircle, Edit, Add } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
-import axiosInstance from '../lib/aixos';
+import axiosInstance from '../lib/axios';
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);

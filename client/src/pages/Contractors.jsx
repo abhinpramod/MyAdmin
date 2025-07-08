@@ -18,7 +18,7 @@ import {
   CardMedia,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import axiosInstance from "../lib/aixos";
+import axiosInstance from "../lib/axios";
 import { toast } from "react-hot-toast";
 import ContractorsTable from "../components/Contractor/ContractorsTable";
 import ContractorProfile from "../components/Contractor/ContractorProfile";

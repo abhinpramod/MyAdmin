@@ -3,7 +3,7 @@ import { TextField, Button, Typography, Container, Paper, Box, Grid, Link } from
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import axiosInstance from "../lib/aixos";
+import axiosInstance from "../lib/axios";
 import { loginAdmin } from "../redux/adminSlice";
 
 const Login = () => {

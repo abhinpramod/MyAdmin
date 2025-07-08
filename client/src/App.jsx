@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import { Loader } from "lucide-react";
-import axiosInstance from "./lib/aixos";
+import axiosInstance from "./lib/axios";
 import { loginAdmin, logoutAdmin } from "./redux/adminSlice";
 
 

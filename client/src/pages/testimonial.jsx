@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import { Add as Plus, Upload, Edit as Pencil, Delete as Trash2, Search, Star, Refresh } from '@mui/icons-material';
 import toast from 'react-hot-toast';
-import axiosInstance from '../lib/aixos';
+import axiosInstance from '../lib/axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import useDebounce from '../hooks/useDebounce';
 
