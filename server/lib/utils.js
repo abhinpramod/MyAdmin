@@ -8,6 +8,7 @@ const generateToken = async (adminId, res) => {
 
   res.cookie("jwta", token, {
     httpOnly: true,
+    sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     secure: process.env.NODE_ENV !== "development",
   });

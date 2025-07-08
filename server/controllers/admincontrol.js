@@ -189,7 +189,12 @@ const unblockAdmin = async (req, res) => {
 
 const logoutAdmin = async (req, res) => {
   try {
-    res.cookie("jwt", "", { maxAge: 0 });
+     res.clearCookie("jwta", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV  !== "development",  // true in production
+      sameSite: "none",
+      path: "/",  // IMPORTANT: should match cookie path when it was set
+    });
     return res.status(200).json({ msg: "Logout success" });
   } catch (error) {
     console.log("error from logout", error.message);
