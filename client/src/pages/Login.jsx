@@ -59,7 +59,8 @@ const Login = () => {
         <Grid container spacing={2}>
           {/* Left Side Image (Only visible on large screens) */}
           <Grid item xs={12} md={6} sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", justifyContent: "center" }}>
-            <img src="public/login.png" alt="image" style={{ maxWidth: "80%" }} />
+         <img src="/login.png" alt="image" style={{ maxWidth: "80%" }} />
+
           </Grid>
 
           {/* Right Side Form */}
