@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const generateToken = async (adminId, res) => {
-  const token = jwt.sign({ adminId }, process.env.JwT_SECRET, {
+  const token = jwt.sign({ adminId }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 
