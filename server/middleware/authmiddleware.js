@@ -10,7 +10,7 @@ const protectRoute = async (req, res, next) => {
     const token = req.cookies.jwta;
 
     if (!token) {
-      return res.status(401).json({ msg: "Unauthorized" });
+      return res.status(401).json({ msg: " No token found Unauthorized" });
     }
 
     const decoded = jwt.verify(token, process.env.JwT_SECRET);
