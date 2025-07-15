@@ -96,9 +96,7 @@ const Login = () => {
                 </Button>
               </Box>
               <Box textAlign="center" marginTop={2}>
-                <Typography variant="body2">
-                  Don't have an account? <Link href="/admin/register">Sign up</Link>
-                </Typography>
+             
               </Box>
             </form>
           </Grid>
